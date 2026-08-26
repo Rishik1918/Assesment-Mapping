@@ -5,7 +5,7 @@ import {
   AlertCircle, Settings, Info, Sparkles, 
   Home, Users, FileText, CheckSquare, Library, ArrowLeft, 
   HelpCircle, Bell, ChevronDown, ZoomIn, ZoomOut, 
-  ChevronLeft, ChevronRight, ArrowRight, ChevronsRight, ChevronsLeft
+  ChevronLeft, ChevronRight, ArrowRight, ChevronsRight, ChevronsLeft, Menu
 } from 'lucide-react';
 import { processFileToImages, getPdfPageCount } from '@/utils/pdf';
 
@@ -729,7 +729,7 @@ export default function AssessmentDashboard() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f4f5f6]">
         
         {/* HEADER BAR */}
-        <header className="flex items-center justify-between bg-white border-b border-slate-200 h-16 px-6 flex-shrink-0">
+        <header className="flex items-center justify-between bg-white border-b border-slate-200 h-16 px-4 sm:px-6 flex-shrink-0">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => { setResult(null); setQpFile(null); setAnsFile(null); }}
@@ -737,31 +737,37 @@ export default function AssessmentDashboard() {
             >
               <ArrowLeft size={18} />
             </button>
-            <span className="text-sm font-extrabold text-slate-900">Exams</span>
+            <span className="text-sm font-black text-slate-900 block sm:hidden">VedaAI</span>
+            <span className="text-sm font-extrabold text-slate-900 hidden sm:block">Exams</span>
           </div>
           
-          <div className="flex items-center gap-4">
-            <HelpCircle size={18} className="text-slate-400 cursor-pointer hover:text-slate-600" />
-            <div className="relative cursor-pointer hover:text-slate-600">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <HelpCircle size={18} className="hidden sm:block text-slate-400 cursor-pointer hover:text-slate-600" />
+            <div className="relative cursor-pointer hover:text-slate-600 p-1">
               <Bell size={18} className="text-slate-400" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#f95738] rounded-full" />
+              <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#f95738] rounded-full" />
             </div>
             
             {/* Sparkle Icon Circle Button */}
-            <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center bg-white cursor-pointer hover:bg-slate-55 shadow-sm transition">
+            <div className="hidden sm:flex w-8 h-8 rounded-full border border-slate-200 items-center justify-center bg-white cursor-pointer hover:bg-slate-50 shadow-sm transition">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/sparkle.png" alt="Sparkle" className="w-4 h-4 object-contain" />
             </div>
             
             {/* User Account Info */}
-            <div className="flex items-center gap-2 border-l border-slate-200 pl-4">
+            <div className="flex items-center gap-2 sm:border-l sm:border-slate-200 sm:pl-4">
               <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/avatar.png" alt="Teacher Avatar" className="w-full h-full object-cover" />
               </div>
               <span className="hidden sm:inline text-xs font-extrabold text-slate-900">{teacherName}</span>
-              <ChevronDown size={14} className="text-slate-400" />
+              <ChevronDown size={14} className="hidden sm:block text-slate-400" />
             </div>
+
+            {/* Hamburger Menu on Mobile */}
+            <button className="block sm:hidden text-slate-500 hover:text-slate-800 p-1 ml-1">
+              <Menu size={20} />
+            </button>
           </div>
         </header>
 
@@ -898,20 +904,12 @@ export default function AssessmentDashboard() {
                     </div>
                   </div>
 
-                  {/* Side-by-Side Upload Cards */}
-                  <div 
-                    style={{
-                      width: '789px',
-                      height: '205px',
-                      gap: '16px',
-                    }}
-                    className="flex flex-row mx-auto justify-center items-center max-w-full"
-                  >
+                  {/* Side-by-Side Upload Cards (Stacked on Mobile) */}
+                  <div className="flex flex-col sm:flex-row mx-auto justify-center items-center gap-4 sm:gap-[16px] w-full sm:w-[789px] h-auto sm:h-[205px] max-w-full px-4 sm:px-0">
                     
                     {/* 1. Question Paper Card */}
                     <div 
                       style={{
-                        width: '374.5px',
                         height: '181px',
                         borderRadius: '20px',
                         padding: '10px',
@@ -920,7 +918,7 @@ export default function AssessmentDashboard() {
                         borderColor: '#cbd5e1',
                         gap: '10px',
                       }}
-                      className="flex flex-col justify-center items-center text-center cursor-pointer relative bg-slate-50/50 hover:bg-slate-50 transition"
+                      className="flex flex-col justify-center items-center text-center cursor-pointer relative bg-white hover:bg-slate-50/80 transition w-full sm:w-[374.5px] max-w-[374.5px]"
                     >
                       {!qpFile && (
                         <input 
@@ -940,25 +938,25 @@ export default function AssessmentDashboard() {
                       )}
                       {qpFile ? (
                         <div className="relative w-full h-full flex items-center justify-center">
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); setQpFile(null); }}
-                            className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 bg-white border border-slate-200 rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm transition shadow-sm z-20"
-                            title="Remove File"
-                          >
-                            ×
-                          </button>
-                          
-                          <div className="flex items-center w-[298px] h-[66px] gap-3 select-none text-left relative z-10 px-2">
+                          <div className="relative flex items-center w-[298px] h-[66px] bg-[#f4f5f6] border border-slate-100 rounded-2xl px-4 select-none text-left z-10">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/pdf-icon.png" alt="PDF" className="w-[34px] h-[44px] object-contain flex-shrink-0" />
+                            <img src="/pdf-icon.png" alt="PDF" className="w-[34px] h-[44px] object-contain flex-shrink-0 mr-3" />
                             <div className="min-w-0 flex-1">
-                              <p className="text-[13px] font-bold text-slate-900 truncate leading-snug">{qpFile.name}</p>
-                              <p className="text-[11px] text-slate-400 mt-1 font-medium">
+                              <p className="text-[12px] font-extrabold text-slate-800 truncate leading-snug">{qpFile.name}</p>
+                              <p className="text-[10px] text-slate-400 mt-1 font-bold">
                                 {qpFile.size < 1024 * 1024 
                                   ? `${Math.round(qpFile.size / 1024)}KB` 
-                                  : `${(qpFile.size / (1024 * 1024)).toFixed(1).replace('.0', '')}MB`} • {qpPageCount} {qpPageCount === 1 ? 'Page' : 'Pages'}
+                                  : `${(qpFile.size / (1024 * 1024)).toFixed(0)}MB`} • {qpPageCount} {qpPageCount === 1 ? 'Page' : 'Pages'}
                               </p>
                             </div>
+                            
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setQpFile(null); }}
+                              className="absolute -top-2 -right-2 text-white hover:bg-black bg-[#4a4b4d] rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs transition shadow-sm z-20"
+                              title="Remove File"
+                            >
+                              ×
+                            </button>
                           </div>
                         </div>
                       ) : (
@@ -978,7 +976,6 @@ export default function AssessmentDashboard() {
                     {/* 2. Answer Sheet Card */}
                     <div 
                       style={{
-                        width: '374.5px',
                         height: '181px',
                         borderRadius: '20px',
                         padding: '10px',
@@ -987,7 +984,7 @@ export default function AssessmentDashboard() {
                         borderColor: '#cbd5e1',
                         gap: '10px',
                       }}
-                      className="flex flex-col justify-center items-center text-center cursor-pointer relative bg-slate-50/50 hover:bg-slate-50 transition"
+                      className="flex flex-col justify-center items-center text-center cursor-pointer relative bg-white hover:bg-slate-50/80 transition w-full sm:w-[374.5px] max-w-[374.5px]"
                     >
                       {!ansFile && (
                         <input 
@@ -999,25 +996,25 @@ export default function AssessmentDashboard() {
                       )}
                       {ansFile ? (
                         <div className="relative w-full h-full flex items-center justify-center">
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); setAnsFile(null); }}
-                            className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 bg-white border border-slate-200 rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm transition shadow-sm z-20"
-                            title="Remove File"
-                          >
-                            ×
-                          </button>
-                          
-                          <div className="flex items-center w-[298px] h-[66px] gap-3 select-none text-left relative z-10 px-2">
+                          <div className="relative flex items-center w-[298px] h-[66px] bg-[#f4f5f6] border border-slate-100 rounded-2xl px-4 select-none text-left z-10">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/pdf-icon.png" alt="PDF" className="w-[34px] h-[44px] object-contain flex-shrink-0" />
+                            <img src="/pdf-icon.png" alt="PDF" className="w-[34px] h-[44px] object-contain flex-shrink-0 mr-3" />
                             <div className="min-w-0 flex-1">
-                              <p className="text-[13px] font-bold text-slate-900 truncate leading-snug">{ansFile.name}</p>
-                              <p className="text-[11px] text-slate-400 mt-1 font-medium">
+                              <p className="text-[12px] font-extrabold text-slate-800 truncate leading-snug">{ansFile.name}</p>
+                              <p className="text-[10px] text-slate-400 mt-1 font-bold">
                                 {ansFile.size < 1024 * 1024 
                                   ? `${Math.round(ansFile.size / 1024)}KB` 
-                                  : `${(ansFile.size / (1024 * 1024)).toFixed(1).replace('.0', '')}MB`} • {ansPageCount} {ansPageCount === 1 ? 'Page' : 'Pages'}
+                                  : `${(ansFile.size / (1024 * 1024)).toFixed(0)}MB`} • {ansPageCount} {ansPageCount === 1 ? 'Page' : 'Pages'}
                               </p>
                             </div>
+                            
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setAnsFile(null); }}
+                              className="absolute -top-2 -right-2 text-white hover:bg-black bg-[#4a4b4d] rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs transition shadow-sm z-20"
+                              title="Remove File"
+                            >
+                              ×
+                            </button>
                           </div>
                         </div>
                       ) : (
@@ -1074,14 +1071,8 @@ export default function AssessmentDashboard() {
                 <div className="flex flex-col items-center justify-center py-24 text-center max-w-md mx-auto bg-white border border-slate-200 rounded-3xl p-12 shadow-sm animate-in fade-in duration-300">
                   {/* Central Orange Sparkles Icon */}
                   <div className="relative mb-6">
-                    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto animate-pulse">
-                      {/* Large star in center-right */}
-                      <path d="M70 30 C70 50 50 70 30 70 C50 70 70 90 70 110 C70 90 90 70 110 70 C90 70 70 50 70 30 Z" fill="#f95738" />
-                      {/* Small star top-left */}
-                      <path d="M35 20 C35 28 30 32 22 32 C30 32 35 36 35 44 C35 36 39 32 47 32 C39 32 35 28 35 20 Z" fill="#f95738" opacity="0.7" />
-                      {/* Small star bottom-left */}
-                      <path d="M90 80 C90 87 86 91 79 91 C86 91 90 95 90 102 C90 95 94 91 101 91 C94 91 90 87 90 80 Z" fill="#f95738" opacity="0.8" />
-                    </svg>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/sparkle.png" alt="Extracting..." className="w-[100px] h-[100px] object-contain mx-auto animate-pulse" />
                   </div>
                   <div className="space-y-1">
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">Extracting...</h3>
@@ -1121,16 +1112,16 @@ export default function AssessmentDashboard() {
                   </div>
 
                   {/* Toggle view for mobile */}
-                  <div className="flex lg:hidden bg-white p-1 rounded-full border border-slate-200 flex-shrink-0">
+                  <div className="flex lg:hidden bg-[#f4f5f6] p-1 rounded-full border border-slate-200/60 max-w-[320px] mx-auto w-full flex-shrink-0">
                     <button 
                       onClick={() => setMobileActiveView('questions')}
-                      className={`flex-1 text-center py-2.5 rounded-full text-xs font-bold transition ${mobileActiveView === 'questions' ? 'bg-[#1c1d1f] text-white' : 'text-slate-500'}`}
+                      className={`flex-1 text-center py-2 rounded-full text-[11px] font-extrabold transition duration-200 ${mobileActiveView === 'questions' ? 'bg-[#1c1d1f] text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                     >
                       Questions
                     </button>
                     <button 
                       onClick={() => setMobileActiveView('sheet')}
-                      className={`flex-1 text-center py-2.5 rounded-full text-xs font-bold transition ${mobileActiveView === 'sheet' ? 'bg-[#1c1d1f] text-white' : 'text-slate-500'}`}
+                      className={`flex-1 text-center py-2 rounded-full text-[11px] font-extrabold transition duration-200 ${mobileActiveView === 'sheet' ? 'bg-[#1c1d1f] text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                     >
                       Answer Sheet
                     </button>
@@ -1231,25 +1222,25 @@ export default function AssessmentDashboard() {
                     <div className={`flex-1 bg-white border border-slate-200 rounded-3xl flex flex-col overflow-hidden shadow-sm ${mobileActiveView === 'sheet' ? 'flex' : 'hidden lg:flex'}`}>
                       
                       {/* Canvas Header Zoom / Page controls */}
-                      <div className="border-b border-slate-100 p-4 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
-                        <span className="text-xs font-extrabold text-slate-900">Answer Sheet</span>
-                        <div className="flex items-center gap-6">
+                      <div className="border-b border-slate-100 p-3 lg:p-4 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
+                        <span className="text-xs font-extrabold text-slate-900 hidden lg:inline">Answer Sheet</span>
+                        <div className="flex items-center justify-between w-full lg:w-auto lg:justify-end gap-2 lg:gap-6 bg-[#1c1d1f] lg:bg-transparent text-white lg:text-slate-55 p-2 lg:p-0 rounded-2xl lg:rounded-none shadow-md lg:shadow-none mx-auto lg:mx-0 max-w-[340px] lg:max-w-none">
                           
                           {/* Zoom Controls */}
-                          <div className="flex items-center gap-2 border-r border-slate-200 pr-4">
-                            <button onClick={() => handleZoom('out')} className="text-slate-400 hover:text-slate-800 p-1">
-                              <ZoomOut size={16} />
+                          <div className="flex items-center gap-2 border-r border-slate-800 lg:border-slate-200 pr-3 lg:pr-4">
+                            <button onClick={() => handleZoom('out')} className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1">
+                              <ZoomOut size={15} />
                             </button>
-                            <span className="text-xs font-bold text-slate-505 min-w-[32px] text-center">{zoomLevel}%</span>
-                            <button onClick={() => handleZoom('in')} className="text-slate-400 hover:text-slate-800 p-1">
-                              <ZoomIn size={16} />
+                            <span className="text-xs font-extrabold min-w-[32px] text-center">{zoomLevel}%</span>
+                            <button onClick={() => handleZoom('in')} className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1">
+                              <ZoomIn size={15} />
                             </button>
                           </div>
 
                           {/* Navigation indicator */}
-                          <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                            <button className="text-slate-400 hover:text-slate-800 p-1">
-                              <ChevronLeft size={16} />
+                          <div className="flex items-center gap-2 text-xs font-extrabold">
+                            <button className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1">
+                              <ChevronLeft size={15} />
                             </button>
                             <span>
                               {currentSelectedAnswer 
@@ -1258,8 +1249,8 @@ export default function AssessmentDashboard() {
                                     : `Page ${currentSelectedAnswer.pageIndex + 1}`)
                                 : 'Page 1'} of {ansImages.length}
                             </span>
-                            <button className="text-slate-400 hover:text-slate-800 p-1">
-                              <ChevronRight size={16} />
+                            <button className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1">
+                              <ChevronRight size={15} />
                             </button>
                           </div>
 
@@ -1304,8 +1295,8 @@ export default function AssessmentDashboard() {
                                     }}
                                     className="absolute border-2 border-[#34a853] bg-[#34a853]/5 rounded-xl pointer-events-none transition-all duration-300"
                                   >
-                                    {/* Green badge on top left */}
-                                    <span className="absolute -top-3.5 -left-1 text-[10px] font-black w-7 h-7 rounded-full flex items-center justify-center text-white bg-[#34a853] border-2 border-white shadow shadow-emerald-700/20">
+                                    {/* Green tab badge on top left */}
+                                    <span className="absolute -top-[21px] -left-[1.5px] text-[10px] font-extrabold px-2.5 py-0.5 rounded-t-lg text-white bg-[#34a853] pointer-events-none select-none z-10">
                                       Q{selectedQuestionNumber}
                                     </span>
                                   </div>
