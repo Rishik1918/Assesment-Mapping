@@ -381,6 +381,7 @@ export default function AssessmentDashboard() {
   const [qpPageCount, setQpPageCount] = useState<number>(0);
   const [ansPageCount, setAnsPageCount] = useState<number>(0);
   const [ansImages, setAnsImages] = useState<string[]>([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   // Watch files and compute page counts dynamically
   useEffect(() => {
@@ -729,7 +730,7 @@ export default function AssessmentDashboard() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f4f5f6]">
         
         {/* HEADER BAR */}
-        <header className="flex items-center justify-between bg-white border-b border-slate-200 h-16 px-4 sm:px-6 flex-shrink-0">
+        <header className="relative flex items-center justify-between bg-white border-b border-slate-200 h-16 px-4 sm:px-6 flex-shrink-0">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => { setResult(null); setQpFile(null); setAnsFile(null); }}
@@ -765,10 +766,31 @@ export default function AssessmentDashboard() {
             </div>
 
             {/* Hamburger Menu on Mobile */}
-            <button className="block sm:hidden text-slate-500 hover:text-slate-800 p-1 ml-1">
+            <button 
+              onClick={() => setIsMobileMenuOpen(prev => !prev)}
+              className="block sm:hidden text-slate-500 hover:text-slate-800 p-1 ml-1"
+            >
               <Menu size={20} />
             </button>
           </div>
+
+          {/* Mobile Menu Dropdown Popover */}
+          {isMobileMenuOpen && (
+            <div className="absolute top-14 right-4 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-150">
+              <button 
+                onClick={() => { setActiveTab('exams'); setIsMobileMenuOpen(false); }}
+                className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'exams' ? 'bg-[#1c1d1f] text-white' : 'text-slate-600 hover:bg-slate-55'}`}
+              >
+                Exams Dashboard
+              </button>
+              <button 
+                onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }}
+                className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'settings' ? 'bg-[#1c1d1f] text-white' : 'text-slate-600 hover:bg-slate-55'}`}
+              >
+                Settings & API Key
+              </button>
+            </div>
+          )}
         </header>
 
         {/* CONTAINER CONTENT */}
@@ -937,8 +959,8 @@ export default function AssessmentDashboard() {
                         />
                       )}
                       {qpFile ? (
-                        <div className="relative w-full h-full flex items-center justify-center">
-                          <div className="relative flex items-center w-[298px] h-[66px] bg-[#f4f5f6] border border-slate-100 rounded-2xl px-4 select-none text-left z-10">
+                        <div className="relative w-full h-full flex items-center justify-center p-2">
+                          <div className="relative flex items-center w-full max-w-[298px] mx-auto h-[66px] bg-[#f4f5f6] border border-slate-100 rounded-2xl px-4 select-none text-left z-10">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/pdf-icon.png" alt="PDF" className="w-[34px] h-[44px] object-contain flex-shrink-0 mr-3" />
                             <div className="min-w-0 flex-1">
@@ -995,8 +1017,8 @@ export default function AssessmentDashboard() {
                         />
                       )}
                       {ansFile ? (
-                        <div className="relative w-full h-full flex items-center justify-center">
-                          <div className="relative flex items-center w-[298px] h-[66px] bg-[#f4f5f6] border border-slate-100 rounded-2xl px-4 select-none text-left z-10">
+                        <div className="relative w-full h-full flex items-center justify-center p-2">
+                          <div className="relative flex items-center w-full max-w-[298px] mx-auto h-[66px] bg-[#f4f5f6] border border-slate-100 rounded-2xl px-4 select-none text-left z-10">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/pdf-icon.png" alt="PDF" className="w-[34px] h-[44px] object-contain flex-shrink-0 mr-3" />
                             <div className="min-w-0 flex-1">
