@@ -481,9 +481,9 @@ export default function AssessmentDashboard() {
   };
 
   // Convert File to base64 images helper
-  const loadFilesToImages = async (file: File, isQP: boolean) => {
+  const loadFilesToImages = async (file: File, isQP: boolean, maxDim = 1200, quality = 0.8) => {
     try {
-      const images = await processFileToImages(file);
+      const images = await processFileToImages(file, maxDim, quality);
       if (!isQP) {
         setAnsImages(images);
       }
