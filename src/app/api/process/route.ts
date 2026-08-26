@@ -234,7 +234,7 @@ Guidelines:
 
     // Call Google Gemini REST API directly to support all API key formats (including keys starting with AQ.)
     const cleanApiKey = apiKey.trim();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(cleanApiKey)}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(cleanApiKey)}`;
 
     const apiResponse = await fetch(url, {
       method: 'POST',
