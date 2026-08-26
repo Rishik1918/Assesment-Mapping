@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
 
 // Strict Schema definition for Gemini Structured Outputs
 const responseSchema = {
@@ -172,8 +171,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-
     // Construct unified prompt content matching role user
     const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
 
@@ -235,20 +232,35 @@ Guidelines:
       text: "Please output the final result in JSON strictly conforming to the requested schema."
     });
 
-    // Call the model with structured output config
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: [{
-        role: 'user',
-        parts: parts
-      }],
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: responseSchema as unknown as undefined,
-      }
+    // Call Google Gemini REST API directly to support all API key formats (including keys starting with AQ.)
+    const cleanApiKey = apiKey.trim();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(cleanApiKey)}`;
+
+    const apiResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{
+          role: 'user',
+          parts: parts
+        }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: responseSchema
+        }
+      })
     });
 
-    const resultText = response.text;
+    const resData = await apiResponse.json();
+
+    if (!apiResponse.ok) {
+      const errorMsg = resData.error?.message || 'Google API returned an error during processing.';
+      throw new Error(`Google API Error (${apiResponse.status}): ${errorMsg}`);
+    }
+
+    const resultText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!resultText) {
       throw new Error('Empty response received from the Gemini API.');
     }
