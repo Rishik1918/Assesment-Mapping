@@ -14,16 +14,30 @@ export function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export async function convertPdfToImages(file: File): Promise<string[]> {
+export async function convertPdfToImages(file: File, maxDim = 1200, quality = 0.8): Promise<string[]> {
   const arrayBuffer = await file.arrayBuffer();
-  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-  const pdf = await loadingTask.promise;
+  let pdf;
+  try {
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    pdf = await loadingTask.promise;
+  } catch (err) {
+    const error = err as { name?: string };
+    if (error && error.name === 'PasswordException') {
+      throw new Error('This PDF is password-protected. Please remove the password and try again.');
+    }
+    throw err;
+  }
   const imageUrls: string[] = [];
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
-    // Render at a reasonable scale (1.5) for text extraction accuracy and visibility
-    const viewport = page.getViewport({ scale: 1.5 });
+    const viewportDefault = page.getViewport({ scale: 1.0 });
+    
+    // Direct scale calculation to target maximum dimension in a single pass
+    const currentMax = Math.max(viewportDefault.width, viewportDefault.height);
+    const scale = currentMax > maxDim ? maxDim / currentMax : 1.0;
+    
+    const viewport = page.getViewport({ scale });
     
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -34,15 +48,15 @@ export async function convertPdfToImages(file: File): Promise<string[]> {
 
     await page.render({ canvasContext: context, viewport }).promise;
     
-    // We export as jpeg to reduce base64 size significantly compared to png
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    // We export as jpeg at requested quality
+    const dataUrl = canvas.toDataURL('image/jpeg', quality);
     imageUrls.push(dataUrl);
   }
 
   return imageUrls;
 }
 
-export function resizeImage(dataUrl: string, maxDim = 1200): Promise<string> {
+export function resizeImage(dataUrl: string, maxDim = 1200, quality = 0.8): Promise<string> {
   return new Promise((resolve) => {
     if (typeof window === 'undefined') {
       return resolve(dataUrl);
@@ -68,7 +82,7 @@ export function resizeImage(dataUrl: string, maxDim = 1200): Promise<string> {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
+        resolve(canvas.toDataURL('image/jpeg', quality));
       } else {
         resolve(dataUrl);
       }
@@ -80,14 +94,12 @@ export function resizeImage(dataUrl: string, maxDim = 1200): Promise<string> {
   });
 }
 
-export async function processFileToImages(file: File): Promise<string[]> {
+export async function processFileToImages(file: File, maxDim = 1200, quality = 0.8): Promise<string[]> {
   if (file.type === 'application/pdf') {
-    const images = await convertPdfToImages(file);
-    // Resize each page image to optimize network transfer and speed up Gemini processing
-    return Promise.all(images.map(img => resizeImage(img, 1200)));
+    return convertPdfToImages(file, maxDim, quality);
   } else if (file.type.startsWith('image/')) {
     const base64 = await fileToBase64(file);
-    return [await resizeImage(base64, 1200)];
+    return [await resizeImage(base64, maxDim, quality)];
   }
   return [];
 }
@@ -105,4 +117,84 @@ export async function getPdfPageCount(file: File): Promise<number> {
     console.error('Error reading PDF page count:', err);
     return 1;
   }
+}
+
+export async function extractPdfText(file: File): Promise<string> {
+  if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
+    return '';
+  }
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    if (pdf.numPages === 0) return '';
+    const page = await pdf.getPage(1);
+    const textContent = await page.getTextContent();
+    return textContent.items.map((item) => {
+      const textItem = item as { str?: string };
+      return textItem.str || '';
+    }).join(' ').toLowerCase();
+  } catch (err) {
+    console.error('Error extracting PDF text:', err);
+    return '';
+  }
+}
+
+export async function checkPdfSwapLocally(qpFile: File, ansFile: File): Promise<{ swapped: boolean; reason?: string }> {
+  // 1. Filename keyword check (catches instant swaps)
+  const qpName = qpFile.name.toLowerCase();
+  const ansName = ansFile.name.toLowerCase();
+
+  const ansHasQpName = ansName.includes('question') || ansName.includes(' qp') || ansName.endsWith('qp.pdf') || ansName.includes('paper');
+  const qpHasAnsName = qpName.includes('answer') || qpName.includes('ans_') || qpName.endsWith('ans.pdf') || qpName.includes('sheet');
+
+  if (ansHasQpName && qpHasAnsName) {
+    return {
+      swapped: true,
+      reason: 'Mismatched Files: The Question Paper and Student Answer Sheet appear to be swapped. Please upload them in the correct slots.'
+    };
+  }
+
+  // 2. Text Content check
+  const qpText = await extractPdfText(qpFile);
+  const ansText = await extractPdfText(ansFile);
+
+  const strongQpKeywords = ['maximum marks', 'max marks', 'time allowed', 'duration:', 'question paper', 'marks:', 'marks ]'];
+  const generalKeywords = ['question', 'marks', 'exam', 'section', 'test'];
+
+  let ansStrongCount = 0;
+  strongQpKeywords.forEach(kw => {
+    if (ansText.includes(kw)) ansStrongCount++;
+  });
+
+  let qpStrongCount = 0;
+  strongQpKeywords.forEach(kw => {
+    if (qpText.includes(kw)) qpStrongCount++;
+  });
+
+  let ansGeneralCount = 0;
+  generalKeywords.forEach(kw => {
+    if (ansText.includes(kw)) ansGeneralCount++;
+  });
+
+  let qpGeneralCount = 0;
+  generalKeywords.forEach(kw => {
+    if (qpText.includes(kw)) qpGeneralCount++;
+  });
+
+  if (ansStrongCount > qpStrongCount && ansStrongCount >= 1) {
+    return {
+      swapped: true,
+      reason: 'Mismatched Files: The Question Paper and Student Answer Sheet appear to be swapped. Please check and upload them in the correct slots.'
+    };
+  }
+
+  if (ansGeneralCount > qpGeneralCount + 1 && ansGeneralCount >= 2) {
+    return {
+      swapped: true,
+      reason: 'Mismatched Files: The Question Paper and Student Answer Sheet appear to be swapped. Please check and upload them in the correct slots.'
+    };
+  }
+
+  return { swapped: false };
 }

@@ -7,7 +7,7 @@ import {
   HelpCircle, Bell, ChevronDown, ZoomIn, ZoomOut, 
   ChevronLeft, ChevronRight, ArrowRight, ChevronsRight, ChevronsLeft, Menu
 } from 'lucide-react';
-import { processFileToImages, getPdfPageCount } from '@/utils/pdf';
+import { processFileToImages, getPdfPageCount, checkPdfSwapLocally } from '@/utils/pdf';
 
 // Schema Interfaces
 interface Question {
@@ -511,8 +511,24 @@ export default function AssessmentDashboard() {
 
     try {
       setProcessingStep('Converting files to canvas layouts...');
+      
+      const swapCheck = await checkPdfSwapLocally(qpFile, ansFile);
+      if (swapCheck.swapped) {
+        setApiError(swapCheck.reason || 'Mismatched Files: The Question Paper and Student Answer Sheet appear to be swapped.');
+        setIsProcessing(false);
+        return;
+      }
+      
       const paperImages = await loadFilesToImages(qpFile, true);
       const answerImages = await loadFilesToImages(ansFile, false);
+
+      const totalBase64Length = paperImages.reduce((sum, img) => sum + img.length, 0) + answerImages.reduce((sum, img) => sum + img.length, 0);
+      const estimatedBytes = totalBase64Length * 0.75;
+      if (estimatedBytes > 4.2 * 1024 * 1024) {
+        setApiError("Upload Size Exceeded: The uploaded documents are too large for serverless transfer (exceeds Vercel's 4.5MB limit). Please compress your PDFs or upload fewer pages.");
+        setIsProcessing(false);
+        return;
+      }
 
       setProcessingStep('Sending extracted pages to Gemini AI (parsing handwriting)...');
       
@@ -605,6 +621,22 @@ export default function AssessmentDashboard() {
     const targetEl = pageRefs.current[targetIdx];
     if (targetEl) {
       targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handleBackNavigation = () => {
+    if (activeTab !== 'exams') {
+      setActiveTab('exams');
+      return;
+    }
+    if (result) {
+      setResult(null);
+      return;
+    }
+    if (qpFile || ansFile) {
+      setQpFile(null);
+      setAnsFile(null);
+      return;
     }
   };
 
@@ -755,12 +787,15 @@ export default function AssessmentDashboard() {
         {/* HEADER BAR */}
         <header className="relative flex items-center justify-between bg-white border-b border-slate-200 h-16 px-4 sm:px-6 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => { setResult(null); setQpFile(null); setAnsFile(null); }}
-              className="text-slate-400 hover:text-slate-800 transition p-1"
-            >
-              <ArrowLeft size={18} />
-            </button>
+            {(activeTab !== 'exams' || result || qpFile || ansFile) && (
+              <button 
+                onClick={handleBackNavigation}
+                className="text-slate-400 hover:text-slate-800 transition p-1 mr-1"
+                title="Go Back"
+              >
+                <ArrowLeft size={18} />
+              </button>
+            )}
             <div className="flex items-center gap-2 sm:hidden select-none">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-icon.png" alt="VedaAI Logo" className="w-5 h-5 object-contain antialiased" style={{ imageRendering: 'auto' }} />
