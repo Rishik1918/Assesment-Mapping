@@ -239,7 +239,8 @@ Guidelines:
     const apiResponse = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-goog-api-key': cleanApiKey
       },
       body: JSON.stringify({
         contents: [{
