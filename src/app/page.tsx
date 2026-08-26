@@ -60,6 +60,123 @@ interface AssessmentResult {
   };
 }
 
+const GEMINI_RESPONSE_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    questions: {
+      type: 'ARRAY',
+      description: 'The list of all questions extracted from the Question Paper in printed order',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          id: { type: 'STRING', description: 'Unique identifier for the question, e.g. "q_1" or "q_11_a"' },
+          number: { type: 'STRING', description: 'The exact question number text, e.g. "1" or "11(a)"' },
+          text: { type: 'STRING', description: 'The text content of the question' },
+          marks: { type: 'INTEGER', description: 'Maximum possible marks for this question' }
+        },
+        required: ['id', 'number', 'text', 'marks']
+      }
+    },
+    answers: {
+      type: 'ARRAY',
+      description: 'The list of student answers mapped to their corresponding question numbers',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          questionNumber: { type: 'STRING', description: 'The question number this answer maps to, matching one of the questions.number values (e.g. "1" or "11(a)")' },
+          studentAnswerText: { type: 'STRING', description: 'Transcribed text of the student\'s handwritten answer' },
+          pageIndex: { type: 'INTEGER', description: '0-based index of the primary page in the answer sheet containing this answer' },
+          boundingBox: {
+            type: 'OBJECT',
+            description: 'The primary coordinate region of the student\'s answer on the page',
+            properties: {
+              ymin: { type: 'INTEGER', description: 'Top edge coordinate (0 to 1000)' },
+              xmin: { type: 'INTEGER', description: 'Left edge coordinate (0 to 1000)' },
+              ymax: { type: 'INTEGER', description: 'Bottom edge coordinate (0 to 1000)' },
+              xmax: { type: 'INTEGER', description: 'Right edge coordinate (0 to 1000)' }
+            },
+            required: ['ymin', 'xmin', 'ymax', 'xmax']
+          },
+          locations: {
+            type: 'ARRAY',
+            description: 'All pages/coordinates where this answer is located. Use multiple items if the student continued their answer onto another page or another distinct region of the answer sheet.',
+            items: {
+              type: 'OBJECT',
+              properties: {
+                pageIndex: { type: 'INTEGER', description: '0-based page index' },
+                boundingBox: {
+                  type: 'OBJECT',
+                  properties: {
+                    ymin: { type: 'INTEGER' },
+                    xmin: { type: 'INTEGER' },
+                    ymax: { type: 'INTEGER' },
+                    xmax: { type: 'INTEGER' }
+                  },
+                  required: ['ymin', 'xmin', 'ymax', 'xmax']
+                }
+              },
+              required: ['pageIndex', 'boundingBox']
+            }
+          },
+          evaluation: {
+            type: 'OBJECT',
+            description: 'Grading and feedback for this answer',
+            properties: {
+              status: { 
+                type: 'STRING', 
+                description: 'Evaluation status: correct, incorrect, or partial',
+                enum: ['correct', 'incorrect', 'partial'] 
+              },
+              marksAwarded: { type: 'NUMBER', description: 'Marks awarded for this answer' },
+              feedback: { type: 'STRING', description: 'Constructive feedback explaining the grade' }
+            },
+            required: ['status', 'marksAwarded', 'feedback']
+          }
+        },
+        required: ['questionNumber', 'studentAnswerText', 'pageIndex', 'boundingBox', 'locations', 'evaluation']
+      }
+    },
+    unansweredQuestions: {
+      type: 'ARRAY',
+      description: 'The list of question numbers that the student did not answer',
+      items: { type: 'STRING' }
+    },
+    unmatchedAnswers: {
+      type: 'ARRAY',
+      description: 'Handwritten entries or answers in the answer sheet that do not correspond to any question in the paper',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          studentAnswerText: { type: 'STRING', description: 'Transcribed text of the unmatched entry' },
+          pageIndex: { type: 'INTEGER', description: '0-based page index' },
+          boundingBox: {
+            type: 'OBJECT',
+            properties: {
+              ymin: { type: 'INTEGER' },
+              xmin: { type: 'INTEGER' },
+              ymax: { type: 'INTEGER' },
+              xmax: { type: 'INTEGER' }
+            },
+            required: ['ymin', 'xmin', 'ymax', 'xmax']
+          }
+        },
+        required: ['studentAnswerText', 'pageIndex', 'boundingBox']
+      }
+    },
+    overallSummary: {
+      type: 'OBJECT',
+      description: 'Overall assessment results summary',
+      properties: {
+        totalMarksObtained: { type: 'NUMBER', description: 'Sum of marks awarded' },
+        totalPossibleMarks: { type: 'NUMBER', description: 'Sum of possible marks' },
+        overallFeedback: { type: 'STRING', description: 'Summary critique and study advice for the student' }
+      },
+      required: ['totalMarksObtained', 'totalPossibleMarks', 'overallFeedback']
+    }
+  },
+  required: ['questions', 'answers', 'unansweredQuestions', 'unmatchedAnswers', 'overallSummary']
+};
+
 // ----------------------------------------------------
 // INLINE VECTOR SVGS MATCHING FIGMA SCREENSHOTS EXACTLY
 // ----------------------------------------------------
@@ -518,36 +635,135 @@ export default function AssessmentDashboard() {
         setIsProcessing(false);
         return;
       }
-      
-      const paperImages = await loadFilesToImages(qpFile, true);
-      const answerImages = await loadFilesToImages(ansFile, false);
 
-      const totalBase64Length = paperImages.reduce((sum, img) => sum + img.length, 0) + answerImages.reduce((sum, img) => sum + img.length, 0);
-      const estimatedBytes = totalBase64Length * 0.75;
-      if (estimatedBytes > 4.2 * 1024 * 1024) {
-        setApiError("Upload Size Exceeded: The uploaded documents are too large for serverless transfer (exceeds Vercel's 4.5MB limit). Please compress your PDFs or upload fewer pages.");
-        setIsProcessing(false);
-        return;
+      // Calculate dynamic maxDim and quality based on combined page count
+      const qpPageCount = await getPdfPageCount(qpFile);
+      const ansPageCount = await getPdfPageCount(ansFile);
+      const totalPages = qpPageCount + ansPageCount;
+
+      let maxDim = 1400; // default large size for small documents
+      let quality = 0.85;
+
+      // Only reduce quality if they are NOT using their own API key (because of Vercel limits)
+      if (!geminiApiKey) {
+        if (totalPages > 4) {
+          maxDim = 1000;
+          quality = 0.75;
+        }
+        if (totalPages > 7) {
+          maxDim = 850;
+          quality = 0.7;
+        }
+      }
+      
+      const paperImages = await loadFilesToImages(qpFile, true, maxDim, quality);
+      const answerImages = await loadFilesToImages(ansFile, false, maxDim, quality);
+
+      // Only check Vercel limits if using serverless path (without own API key)
+      if (!geminiApiKey) {
+        const totalBase64Length = paperImages.reduce((sum, img) => sum + img.length, 0) + answerImages.reduce((sum, img) => sum + img.length, 0);
+        const estimatedBytes = totalBase64Length * 0.75;
+        if (estimatedBytes > 4.2 * 1024 * 1024) {
+          setApiError("Upload Size Exceeded: The uploaded documents are too large for serverless transfer (exceeds Vercel's 4.5MB limit). Please compress your PDFs, reduce pages, or enter your own Gemini API Key in Settings to bypass this limit completely.");
+          setIsProcessing(false);
+          return;
+        }
       }
 
-      setProcessingStep('Sending extracted pages to Gemini AI (parsing handwriting)...');
-      
-      const response = await fetch('/api/process', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          questionPaperImages: paperImages,
-          answerSheetImages: answerImages,
-          userApiKey: geminiApiKey || undefined
-        })
-      });
+      let data;
+      if (geminiApiKey) {
+        setProcessingStep('Sending extracted pages directly to Google Gemini API (bypassing serverless limits)...');
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
+        
+        const promptText = `Task: Analyze the uploaded Question Paper pages and Student Answer Sheet pages to perform question extraction, answer extraction, student answer mapping, and grading.
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Server error during processing.');
+Guidelines:
+0. CONTENT VALIDATION: Check the contents of the uploaded files first.
+   - If the uploaded Question Paper pages contain student handwritten answers, and the Student Answer Sheet pages contain a printed question paper (i.e. they are swapped), you MUST set the overallSummary.overallFeedback field to exactly "ERROR_MISMATCHED_FILES".
+   - If either document is irrelevant to an exam assessment (e.g. random articles, bills, receipts, or unrelated paperwork), you MUST set overallSummary.overallFeedback to exactly "ERROR_IRRELEVANT_FILES".
+1. Extract ALL questions from the Question Paper in printed order.
+2. Read the Student Answer Sheet.
+3. Grade the answer.
+4. List any questions from the paper that are unanswered.
+5. List any student answers or scribbles that do not map to any question.
+6. Provide an overall summary.`
+
+        const contents = [{
+          role: 'user',
+          parts: [
+            { text: promptText },
+            ...paperImages.map(img => {
+              const match = img.match(/^data:(image\/[a-zA-Z+.-]+);base64,(.+)$/);
+              return {
+                inlineData: {
+                  mimeType: match ? match[1] : 'image/jpeg',
+                  data: match ? match[2] : ''
+                }
+              };
+            }),
+            ...answerImages.map(img => {
+              const match = img.match(/^data:(image\/[a-zA-Z+.-]+);base64,(.+)$/);
+              return {
+                inlineData: {
+                  mimeType: match ? match[1] : 'image/jpeg',
+                  data: match ? match[2] : ''
+                }
+              };
+            }),
+            { text: "Please output the final result in JSON strictly conforming to the requested schema." }
+          ]
+        }];
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents,
+            generationConfig: {
+              responseMimeType: 'application/json',
+              responseSchema: GEMINI_RESPONSE_SCHEMA
+            }
+          })
+        });
+
+        const resData = await response.json();
+        if (!response.ok) {
+          throw new Error(resData.error?.message || 'Google API error during processing.');
+        }
+
+        const text = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) {
+          throw new Error('Gemini API returned an empty response.');
+        }
+        data = JSON.parse(text);
+      } else {
+        setProcessingStep('Sending extracted pages to Gemini AI (parsing handwriting)...');
+        const response = await fetch('/api/process', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            questionPaperImages: paperImages,
+            answerSheetImages: answerImages,
+          })
+        });
+
+        data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Server error during processing.');
+        }
+      }
+
+      // Intercept and throw validation errors
+      if (data.overallSummary?.overallFeedback === 'ERROR_MISMATCHED_FILES') {
+        throw new Error('Mismatched Files: The Question Paper and Student Answer Sheet appear to be swapped. Please check and upload them in the correct slots.');
+      }
+      if (data.overallSummary?.overallFeedback === 'ERROR_IRRELEVANT_FILES') {
+        throw new Error('Irrelevant Files: The uploaded documents do not appear to contain relevant exam questions or student answers.');
       }
 
       setResult(data);
