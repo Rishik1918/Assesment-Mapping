@@ -60,123 +60,6 @@ interface AssessmentResult {
   };
 }
 
-const GEMINI_RESPONSE_SCHEMA = {
-  type: 'OBJECT',
-  properties: {
-    questions: {
-      type: 'ARRAY',
-      description: 'The list of all questions extracted from the Question Paper in printed order',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          id: { type: 'STRING', description: 'Unique identifier for the question, e.g. "q_1" or "q_11_a"' },
-          number: { type: 'STRING', description: 'The exact question number text, e.g. "1" or "11(a)"' },
-          text: { type: 'STRING', description: 'The text content of the question' },
-          marks: { type: 'INTEGER', description: 'Maximum possible marks for this question' }
-        },
-        required: ['id', 'number', 'text', 'marks']
-      }
-    },
-    answers: {
-      type: 'ARRAY',
-      description: 'The list of student answers mapped to their corresponding question numbers',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          questionNumber: { type: 'STRING', description: 'The question number this answer maps to, matching one of the questions.number values (e.g. "1" or "11(a)")' },
-          studentAnswerText: { type: 'STRING', description: 'Transcribed text of the student\'s handwritten answer' },
-          pageIndex: { type: 'INTEGER', description: '0-based index of the primary page in the answer sheet containing this answer' },
-          boundingBox: {
-            type: 'OBJECT',
-            description: 'The primary coordinate region of the student\'s answer on the page',
-            properties: {
-              ymin: { type: 'INTEGER', description: 'Top edge coordinate (0 to 1000)' },
-              xmin: { type: 'INTEGER', description: 'Left edge coordinate (0 to 1000)' },
-              ymax: { type: 'INTEGER', description: 'Bottom edge coordinate (0 to 1000)' },
-              xmax: { type: 'INTEGER', description: 'Right edge coordinate (0 to 1000)' }
-            },
-            required: ['ymin', 'xmin', 'ymax', 'xmax']
-          },
-          locations: {
-            type: 'ARRAY',
-            description: 'All pages/coordinates where this answer is located. Use multiple items if the student continued their answer onto another page or another distinct region of the answer sheet.',
-            items: {
-              type: 'OBJECT',
-              properties: {
-                pageIndex: { type: 'INTEGER', description: '0-based page index' },
-                boundingBox: {
-                  type: 'OBJECT',
-                  properties: {
-                    ymin: { type: 'INTEGER' },
-                    xmin: { type: 'INTEGER' },
-                    ymax: { type: 'INTEGER' },
-                    xmax: { type: 'INTEGER' }
-                  },
-                  required: ['ymin', 'xmin', 'ymax', 'xmax']
-                }
-              },
-              required: ['pageIndex', 'boundingBox']
-            }
-          },
-          evaluation: {
-            type: 'OBJECT',
-            description: 'Grading and feedback for this answer',
-            properties: {
-              status: { 
-                type: 'STRING', 
-                description: 'Evaluation status: correct, incorrect, or partial',
-                enum: ['correct', 'incorrect', 'partial'] 
-              },
-              marksAwarded: { type: 'NUMBER', description: 'Marks awarded for this answer' },
-              feedback: { type: 'STRING', description: 'Constructive feedback explaining the grade' }
-            },
-            required: ['status', 'marksAwarded', 'feedback']
-          }
-        },
-        required: ['questionNumber', 'studentAnswerText', 'pageIndex', 'boundingBox', 'locations', 'evaluation']
-      }
-    },
-    unansweredQuestions: {
-      type: 'ARRAY',
-      description: 'The list of question numbers that the student did not answer',
-      items: { type: 'STRING' }
-    },
-    unmatchedAnswers: {
-      type: 'ARRAY',
-      description: 'Handwritten entries or answers in the answer sheet that do not correspond to any question in the paper',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          studentAnswerText: { type: 'STRING', description: 'Transcribed text of the unmatched entry' },
-          pageIndex: { type: 'INTEGER', description: '0-based page index' },
-          boundingBox: {
-            type: 'OBJECT',
-            properties: {
-              ymin: { type: 'INTEGER' },
-              xmin: { type: 'INTEGER' },
-              ymax: { type: 'INTEGER' },
-              xmax: { type: 'INTEGER' }
-            },
-            required: ['ymin', 'xmin', 'ymax', 'xmax']
-          }
-        },
-        required: ['studentAnswerText', 'pageIndex', 'boundingBox']
-      }
-    },
-    overallSummary: {
-      type: 'OBJECT',
-      description: 'Overall assessment results summary',
-      properties: {
-        totalMarksObtained: { type: 'NUMBER', description: 'Sum of marks awarded' },
-        totalPossibleMarks: { type: 'NUMBER', description: 'Sum of possible marks' },
-        overallFeedback: { type: 'STRING', description: 'Summary critique and study advice for the student' }
-      },
-      required: ['totalMarksObtained', 'totalPossibleMarks', 'overallFeedback']
-    }
-  },
-  required: ['questions', 'answers', 'unansweredQuestions', 'unmatchedAnswers', 'overallSummary']
-};
-
 // ----------------------------------------------------
 // INLINE VECTOR SVGS MATCHING FIGMA SCREENSHOTS EXACTLY
 // ----------------------------------------------------
@@ -536,6 +419,7 @@ export default function AssessmentDashboard() {
   const [selectedQuestionNumber, setSelectedQuestionNumber] = useState<string | null>(null);
   const [mobileActiveView, setMobileActiveView] = useState<'questions' | 'sheet'>('questions');
   const [apiError, setApiError] = useState<string | null>(null);
+  const [isAllExpanded, setIsAllExpanded] = useState<boolean>(false);
   
   // Zoom and scroll references
   const [zoomLevel, setZoomLevel] = useState<number>(100);
@@ -659,103 +543,32 @@ export default function AssessmentDashboard() {
       const paperImages = await loadFilesToImages(qpFile, true, maxDim, quality);
       const answerImages = await loadFilesToImages(ansFile, false, maxDim, quality);
 
-      // Only check Vercel limits if using serverless path (without own API key)
-      if (!geminiApiKey) {
-        const totalBase64Length = paperImages.reduce((sum, img) => sum + img.length, 0) + answerImages.reduce((sum, img) => sum + img.length, 0);
-        const estimatedBytes = totalBase64Length * 0.75;
-        if (estimatedBytes > 4.2 * 1024 * 1024) {
-          setApiError("Upload Size Exceeded: The uploaded documents are too large for serverless transfer (exceeds Vercel's 4.5MB limit). Please compress your PDFs, reduce pages, or enter your own Gemini API Key in Settings to bypass this limit completely.");
-          setIsProcessing(false);
-          return;
-        }
+      const totalBase64Length = paperImages.reduce((sum, img) => sum + img.length, 0) + answerImages.reduce((sum, img) => sum + img.length, 0);
+      const estimatedBytes = totalBase64Length * 0.75;
+      if (estimatedBytes > 4.2 * 1024 * 1024) {
+        setApiError("Upload Size Exceeded: The uploaded documents are too large for serverless transfer (exceeds Vercel's 4.5MB limit). Please compress your PDFs or upload fewer pages.");
+        setIsProcessing(false);
+        return;
       }
 
-      let data;
-      if (geminiApiKey) {
-        setProcessingStep('Sending extracted pages directly to Google Gemini API (bypassing serverless limits)...');
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
-        
-        const promptText = `Task: Analyze the uploaded Question Paper pages and Student Answer Sheet pages to perform question extraction, answer extraction, student answer mapping, and grading.
+      setProcessingStep('Sending extracted pages to Gemini AI (parsing handwriting)...');
+      
+      const response = await fetch('/api/process', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          questionPaperImages: paperImages,
+          answerSheetImages: answerImages,
+          userApiKey: geminiApiKey || undefined
+        })
+      });
 
-Guidelines:
-0. CONTENT VALIDATION: Check the contents of the uploaded files first.
-   - If the uploaded Question Paper pages contain student handwritten answers, and the Student Answer Sheet pages contain a printed question paper (i.e. they are swapped), you MUST set the overallSummary.overallFeedback field to exactly "ERROR_MISMATCHED_FILES".
-   - If either document is irrelevant to an exam assessment (e.g. random articles, bills, receipts, or unrelated paperwork), you MUST set overallSummary.overallFeedback to exactly "ERROR_IRRELEVANT_FILES".
-1. Extract ALL questions from the Question Paper in printed order.
-2. Read the Student Answer Sheet.
-3. Grade the answer.
-4. List any questions from the paper that are unanswered.
-5. List any student answers or scribbles that do not map to any question.
-6. Provide an overall summary.`
-
-        const contents = [{
-          role: 'user',
-          parts: [
-            { text: promptText },
-            ...paperImages.map(img => {
-              const match = img.match(/^data:(image\/[a-zA-Z+.-]+);base64,(.+)$/);
-              return {
-                inlineData: {
-                  mimeType: match ? match[1] : 'image/jpeg',
-                  data: match ? match[2] : ''
-                }
-              };
-            }),
-            ...answerImages.map(img => {
-              const match = img.match(/^data:(image\/[a-zA-Z+.-]+);base64,(.+)$/);
-              return {
-                inlineData: {
-                  mimeType: match ? match[1] : 'image/jpeg',
-                  data: match ? match[2] : ''
-                }
-              };
-            }),
-            { text: "Please output the final result in JSON strictly conforming to the requested schema." }
-          ]
-        }];
-
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            contents,
-            generationConfig: {
-              responseMimeType: 'application/json',
-              responseSchema: GEMINI_RESPONSE_SCHEMA
-            }
-          })
-        });
-
-        const resData = await response.json();
-        if (!response.ok) {
-          throw new Error(resData.error?.message || 'Google API error during processing.');
-        }
-
-        const text = resData.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!text) {
-          throw new Error('Gemini API returned an empty response.');
-        }
-        data = JSON.parse(text);
-      } else {
-        setProcessingStep('Sending extracted pages to Gemini AI (parsing handwriting)...');
-        const response = await fetch('/api/process', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            questionPaperImages: paperImages,
-            answerSheetImages: answerImages,
-          })
-        });
-
-        data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Server error during processing.');
-        }
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Server error during processing.');
       }
 
       // Intercept and throw validation errors
@@ -854,6 +667,16 @@ Guidelines:
       setAnsFile(null);
       return;
     }
+  };
+
+  const handleSwapFiles = () => {
+    setApiError(null);
+    const tempFile = qpFile;
+    const tempCount = qpPageCount;
+    setQpFile(ansFile);
+    setQpPageCount(ansPageCount);
+    setAnsFile(tempFile);
+    setAnsPageCount(tempCount);
   };
 
   const currentSelectedAnswer = result?.answers.find(a => a.questionNumber === selectedQuestionNumber);
@@ -1088,7 +911,7 @@ Guidelines:
               <div>
                 <h3 className="text-base font-bold text-slate-900 mb-2">Google Gemini API Configuration</h3>
                 <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-                  Enter your personal Gemini API Key below. By default, the application runs on the shared server key, which can exceed rate limits. Inputting a custom key ensures absolute priority during evaluations.
+                  The application uses the secure server API key configured in Vercel environment variables by default. Evaluators can run document mappings immediately without typing any key. You can also enter a custom key below to override it.
                 </p>
                 <div className="space-y-4">
                   <div>
@@ -1273,6 +1096,20 @@ Guidelines:
                       )}
                     </div>
 
+                    {/* Swap / Interchange Files Button */}
+                    {(qpFile || ansFile) && (
+                      <button
+                        onClick={handleSwapFiles}
+                        type="button"
+                        className="bg-white hover:bg-slate-50 border border-slate-200 rounded-full w-8 h-8 flex items-center justify-center shadow-sm hover:shadow transition-all shrink-0 z-20 mx-auto -my-2 sm:my-0 sm:-mx-2 group"
+                        title="Swap Files"
+                      >
+                        <svg className="w-4 h-4 text-slate-500 group-hover:text-slate-800 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                        </svg>
+                      </button>
+                    )}
+
                     {/* 2. Answer Sheet Card */}
                     <div 
                       style={{
@@ -1356,10 +1193,10 @@ Guidelines:
 
                     <button 
                       onClick={handleLoadDemo}
-                      className="bg-orange-50 border border-[#f95738]/20 hover:bg-orange-100 text-[#f95738] font-bold text-xs px-6 py-2.5 rounded-full flex items-center gap-1.5 transition"
+                      className="bg-[#282828] hover:bg-[#1a1a1a] text-white font-medium text-xs px-6 py-2.5 rounded-full flex items-center gap-2 border-[2.5px] border-[#f95738] shadow-md transition active:scale-95"
                     >
-                      <Sparkles size={13} />
-                      <span>Load Pre-baked Figma Demo</span>
+                      <Sparkles size={14} className="text-white fill-white" />
+                      <span>Load Demo</span>
                     </button>
                   </div>
 
@@ -1390,11 +1227,11 @@ Guidelines:
                 </div>
               )}
 
-              {/* STATE 3: RESULTS SPLIT VIEW */}
+              {/* STATE 3: SPLIT PANEL DISPLAY (MATCHING GRAPHICS EXTREMELY CLOSELY) */}
               {result && (
                 <div className="flex flex-col h-[calc(100vh-6.5rem)] overflow-hidden space-y-4">
                   
-                  {/* Overall Score scoreboard */}
+                  {/* Overall Grading Summary Scoreboard Banner */}
                   <div className="bg-white border border-slate-200 rounded-3xl p-4 md:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-shrink-0 shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="bg-[#fcf8f2] border border-[#f95738]/10 rounded-2xl px-4 py-2.5 text-center flex-shrink-0">
@@ -1411,12 +1248,13 @@ Guidelines:
                     
                     <button 
                       onClick={() => { setResult(null); setQpFile(null); setAnsFile(null); }}
-                      className="text-xs font-bold text-slate-500 hover:text-slate-800 px-4 py-2 border border-slate-200 rounded-full hover:bg-slate-55 transition"
+                      className="text-xs font-bold text-slate-500 hover:text-slate-800 px-4 py-2 border border-slate-200 rounded-full hover:bg-slate-50 transition"
                     >
                       Start New Evaluation
                     </button>
                   </div>
 
+                  {/* Toggle view for mobile */}
                   {/* Toggle view for mobile */}
                   <div className="flex lg:hidden bg-[#f4f5f6] p-1 rounded-full border border-slate-200/60 max-w-[320px] mx-auto w-full flex-shrink-0">
                     <button 
@@ -1436,13 +1274,16 @@ Guidelines:
                   {/* SPLIT VIEWS CONTAINER */}
                   <div className="flex-1 flex gap-6 overflow-hidden min-h-0">
                     
-                    {/* LEFT PANEL: QUESTIONS */}
+                    {/* LEFT PANEL: EXTRACTED QUESTIONS PANEL */}
                     <div className={`flex-1 lg:flex-initial lg:w-[480px] bg-white border border-slate-200 rounded-3xl flex flex-col overflow-hidden shadow-sm ${mobileActiveView === 'questions' ? 'flex' : 'hidden lg:flex'}`}>
                       
                       <div className="border-b border-slate-100 p-4 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
                         <span className="text-xs font-extrabold text-slate-900">Extracted Questions (from question paper)</span>
-                        <button className="text-[11px] font-bold text-slate-400 hover:text-slate-605">
-                          Expand All
+                        <button 
+                          onClick={() => setIsAllExpanded(prev => !prev)}
+                          className="text-[11px] font-bold text-slate-500 hover:text-[#f95738] transition cursor-pointer"
+                        >
+                          {isAllExpanded ? 'Collapse All' : 'Expand All'}
                         </button>
                       </div>
 
@@ -1452,6 +1293,7 @@ Guidelines:
                           const isUnanswered = result.unansweredQuestions.includes(q.number);
                           const isSelected = selectedQuestionNumber === q.number;
 
+                          // Colors matching grading statuses from screenshot
                           let scoreBadge = '';
                           
                           if (mappedAns) {
@@ -1493,11 +1335,11 @@ Guidelines:
                               </div>
 
                               {/* Expanded AI Critique Details */}
-                              {isSelected && mappedAns && (
+                              {(isSelected || isAllExpanded) && mappedAns && (
                                 <div className="mt-4 pt-3.5 border-t border-slate-100 text-xs space-y-3.5 animate-in fade-in slide-in-from-top-1">
                                   <div>
                                     <span className="block text-[9px] font-extrabold uppercase tracking-wide text-slate-400">AI Feedback</span>
-                                    <p className="mt-1.5 text-xs text-slate-700 bg-slate-55 border border-slate-100 p-3 rounded-xl leading-relaxed">
+                                    <p className="mt-1.5 text-xs text-slate-700 bg-slate-50 border border-slate-100 p-3 rounded-xl leading-relaxed">
                                       {mappedAns.evaluation.feedback}
                                     </p>
                                   </div>
@@ -1524,8 +1366,9 @@ Guidelines:
                       </div>
                     </div>
 
-                    {/* RIGHT PANEL: ANSWER SHEET VERTICAL VIEWER */}
+                    {/* RIGHT PANEL: ANSWER SHEET RENDERER & COORDINATE ZOOM HIGHLIGHTS */}
                     <div className={`flex-1 bg-white border border-slate-200 rounded-3xl flex flex-col overflow-hidden shadow-sm ${mobileActiveView === 'sheet' ? 'flex' : 'hidden lg:flex'}`}>
+                      
                       {/* Canvas Header Zoom / Page controls */}
                       <div className="border-b border-slate-100 p-3 lg:p-4 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
                         <span className="text-xs font-extrabold text-slate-900 hidden lg:inline">Answer Sheet</span>
