@@ -182,6 +182,9 @@ export async function POST(request: Request) {
       text: `Task: Analyze the uploaded Question Paper pages and Student Answer Sheet pages to perform question extraction, answer extraction, student answer mapping, and grading.
 
 Guidelines:
+0. CONTENT VALIDATION: Check the contents of the uploaded files first.
+   - If the uploaded Question Paper pages contain student handwritten answers, and the Student Answer Sheet pages contain a printed question paper (i.e. they are swapped), you MUST set the overallSummary.overallFeedback field to exactly "ERROR_MISMATCHED_FILES".
+   - If either document is irrelevant to an exam assessment (e.g. random articles, bills, receipts, or unrelated paperwork), you MUST set overallSummary.overallFeedback to exactly "ERROR_IRRELEVANT_FILES".
 1. Extract ALL questions from the Question Paper in printed order.
    - Treat labelled sub-parts like "11(a)" and "11(b)" as two separate entries.
    - Preserve the original question numbering.
@@ -251,6 +254,22 @@ Guidelines:
     }
 
     const resultJson = JSON.parse(resultText);
+
+    if (resultJson.overallSummary && typeof resultJson.overallSummary.overallFeedback === 'string') {
+      const feedback = resultJson.overallSummary.overallFeedback;
+      if (feedback.includes('ERROR_MISMATCHED_FILES')) {
+        return NextResponse.json(
+          { error: 'Mismatched Files: The Question Paper and Student Answer Sheet appear to be swapped. Please check and upload them in the correct slots.' },
+          { status: 400 }
+        );
+      }
+      if (feedback.includes('ERROR_IRRELEVANT_FILES')) {
+        return NextResponse.json(
+          { error: 'Irrelevant Files: The uploaded documents do not appear to contain relevant exam questions or student answers. Please upload valid academic documents.' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Robust Post-Processing: Validate, normalize, and clamp all coordinates
     if (resultJson.answers && Array.isArray(resultJson.answers)) {

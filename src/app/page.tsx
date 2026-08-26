@@ -382,6 +382,8 @@ export default function AssessmentDashboard() {
   const [ansPageCount, setAnsPageCount] = useState<number>(0);
   const [ansImages, setAnsImages] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [activePageIdx, setActivePageIdx] = useState<number>(0);
 
   // Watch files and compute page counts dynamically
   useEffect(() => {
@@ -499,6 +501,10 @@ export default function AssessmentDashboard() {
       setApiError('Please upload both the Question Paper and Student Answer Sheet.');
       return;
     }
+    if (qpFile.name === ansFile.name || (qpFile.size === ansFile.size && qpFile.size > 0)) {
+      setApiError('Mismatched Files: The Question Paper and Student Answer Sheet cannot be the same file. Please upload distinct documents.');
+      return;
+    }
     setApiError(null);
     setIsProcessing(true);
     setResult(null);
@@ -583,6 +589,23 @@ export default function AssessmentDashboard() {
       if (direction === 'in') return Math.min(prev + 10, 150);
       return Math.max(prev - 10, 70);
     });
+  };
+
+  const handlePageChange = (direction: 'prev' | 'next') => {
+    if (!ansImages || ansImages.length === 0) return;
+    let targetIdx = activePageIdx;
+    if (direction === 'prev' && activePageIdx > 0) {
+      targetIdx = activePageIdx - 1;
+    } else if (direction === 'next' && activePageIdx < ansImages.length - 1) {
+      targetIdx = activePageIdx + 1;
+    }
+    
+    setActivePageIdx(targetIdx);
+    
+    const targetEl = pageRefs.current[targetIdx];
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const currentSelectedAnswer = result?.answers.find(a => a.questionNumber === selectedQuestionNumber);
@@ -738,7 +761,11 @@ export default function AssessmentDashboard() {
             >
               <ArrowLeft size={18} />
             </button>
-            <span className="text-sm font-black text-slate-900 block sm:hidden">VedaAI</span>
+            <div className="flex items-center gap-2 sm:hidden select-none">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo-icon.png" alt="VedaAI Logo" className="w-5 h-5 object-contain antialiased" style={{ imageRendering: 'auto' }} />
+              <span className="text-sm font-black text-slate-900">VedaAI</span>
+            </div>
             <span className="text-sm font-extrabold text-slate-900 hidden sm:block">Exams</span>
           </div>
           
@@ -1093,8 +1120,14 @@ export default function AssessmentDashboard() {
                 <div className="flex flex-col items-center justify-center py-24 text-center max-w-md mx-auto bg-white border border-slate-200 rounded-3xl p-12 shadow-sm animate-in fade-in duration-300">
                   {/* Central Orange Sparkles Icon */}
                   <div className="relative mb-6">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/sparkle.png" alt="Extracting..." className="w-[100px] h-[100px] object-contain mx-auto animate-pulse" />
+                    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto animate-pulse">
+                      {/* Large star in center-right */}
+                      <path d="M70 30 C70 50 50 70 30 70 C50 70 70 90 70 110 C70 90 90 70 110 70 C90 70 70 50 70 30 Z" fill="#f95738" />
+                      {/* Small star top-left */}
+                      <path d="M35 20 C35 28 30 32 22 32 C30 32 35 36 35 44 C35 36 39 32 47 32 C39 32 35 28 35 20 Z" fill="#f95738" opacity="0.7" />
+                      {/* Small star bottom-left */}
+                      <path d="M90 80 C90 87 86 91 79 91 C86 91 90 95 90 102 C90 95 94 91 101 91 C94 91 90 87 90 80 Z" fill="#f95738" opacity="0.8" />
+                    </svg>
                   </div>
                   <div className="space-y-1">
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">Extracting...</h3>
@@ -1119,9 +1152,9 @@ export default function AssessmentDashboard() {
                           {result.overallSummary.totalMarksObtained} <span className="text-xs text-slate-400 font-medium">/ {result.overallSummary.totalPossibleMarks}</span>
                         </span>
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="font-bold text-sm text-slate-900">{subjectName} Evaluation Dashboard</h4>
-                        <p className="text-xs text-slate-400 truncate mt-0.5 max-w-xl">{result.overallSummary.overallFeedback}</p>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-sm text-slate-900 leading-snug">{subjectName} Evaluation Dashboard</h4>
+                        <p className="text-xs text-slate-400 mt-1 leading-normal text-wrap break-words">{result.overallSummary.overallFeedback}</p>
                       </div>
                     </div>
                     
@@ -1242,39 +1275,43 @@ export default function AssessmentDashboard() {
 
                     {/* RIGHT PANEL: ANSWER SHEET VERTICAL VIEWER */}
                     <div className={`flex-1 bg-white border border-slate-200 rounded-3xl flex flex-col overflow-hidden shadow-sm ${mobileActiveView === 'sheet' ? 'flex' : 'hidden lg:flex'}`}>
-                      
                       {/* Canvas Header Zoom / Page controls */}
                       <div className="border-b border-slate-100 p-3 lg:p-4 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
                         <span className="text-xs font-extrabold text-slate-900 hidden lg:inline">Answer Sheet</span>
-                        <div className="flex items-center justify-between w-full lg:w-auto lg:justify-end gap-2 lg:gap-6 bg-[#1c1d1f] lg:bg-transparent text-white lg:text-slate-55 p-2 lg:p-0 rounded-2xl lg:rounded-none shadow-md lg:shadow-none mx-auto lg:mx-0 max-w-[340px] lg:max-w-none">
+                        <div className="flex items-center justify-between w-full lg:w-auto lg:justify-end gap-2 lg:gap-6 bg-[#1c1d1f] lg:bg-transparent text-white lg:text-slate-700 p-2 lg:p-0 rounded-2xl lg:rounded-none shadow-md lg:shadow-none mx-auto lg:mx-0 max-w-[340px] lg:max-w-none">
                           
                           {/* Zoom Controls */}
                           <div className="flex items-center gap-2 border-r border-slate-800 lg:border-slate-200 pr-3 lg:pr-4">
-                            <button onClick={() => handleZoom('out')} className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1">
+                            <button onClick={() => handleZoom('out')} className="text-slate-400 hover:text-white lg:hover:text-slate-850 p-1">
                               <ZoomOut size={15} />
                             </button>
                             <span className="text-xs font-extrabold min-w-[32px] text-center">{zoomLevel}%</span>
-                            <button onClick={() => handleZoom('in')} className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1">
+                            <button onClick={() => handleZoom('in')} className="text-slate-400 hover:text-white lg:hover:text-slate-850 p-1">
                               <ZoomIn size={15} />
                             </button>
                           </div>
 
                           {/* Navigation indicator */}
-                          <div className="flex items-center gap-2 text-xs font-extrabold">
-                            <button className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1">
+                          <div className="flex items-center gap-2 text-xs font-extrabold pr-3 lg:pr-4 border-r border-slate-800 lg:border-slate-200">
+                            <button onClick={() => handlePageChange('prev')} className="text-slate-400 hover:text-white lg:hover:text-slate-850 p-1">
                               <ChevronLeft size={15} />
                             </button>
                             <span>
-                              {currentSelectedAnswer 
-                                ? (currentSelectedAnswer.locations && currentSelectedAnswer.locations.length > 1
-                                    ? `Pages ${[...new Set(currentSelectedAnswer.locations.map(l => l.pageIndex + 1))].join(', ')}`
-                                    : `Page ${currentSelectedAnswer.pageIndex + 1}`)
-                                : 'Page 1'} of {ansImages.length}
+                              Page {activePageIdx + 1} of {ansImages.length}
                             </span>
-                            <button className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1">
+                            <button onClick={() => handlePageChange('next')} className="text-slate-400 hover:text-white lg:hover:text-slate-850 p-1">
                               <ChevronRight size={15} />
                             </button>
                           </div>
+
+                          {/* Full Screen option */}
+                          <button 
+                            onClick={() => setIsFullscreen(true)}
+                            className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1 flex items-center gap-1 text-[11px] font-extrabold uppercase tracking-wide"
+                            title="View Fullscreen"
+                          >
+                            <span>Fullscreen</span>
+                          </button>
 
                         </div>
                       </div>
@@ -1282,8 +1319,8 @@ export default function AssessmentDashboard() {
                       {/* Stacked Sheet Canvas */}
                       <div className="flex-1 overflow-auto p-6 bg-[#525659] flex flex-col items-center">
                         <div 
-                          style={{ width: `${zoomLevel}%` }}
-                          className="space-y-6 transition-all duration-200 max-w-3xl"
+                          style={{ width: `${zoomLevel}%`, maxWidth: zoomLevel > 100 ? 'none' : '48rem' }}
+                          className="space-y-6 transition-all duration-200 w-full"
                         >
                           {ansImages.map((imgUrl, idx) => {
                             const highlightBoxes = currentSelectedAnswer
@@ -1344,6 +1381,97 @@ export default function AssessmentDashboard() {
           )}
         </div>
       </main>
+
+      {/* Fullscreen Overlay Component */}
+      {isFullscreen && (
+        <div className="fixed inset-0 bg-[#2d2f31] z-[999] flex flex-col overflow-hidden animate-in fade-in duration-200">
+          {/* Fullscreen Header */}
+          <div className="bg-[#1c1d1f] p-4 flex items-center justify-between text-white border-b border-slate-800">
+            <span className="text-xs font-extrabold">Answer Sheet (Fullscreen)</span>
+            <div className="flex items-center gap-4">
+              {/* Zoom Controls */}
+              <div className="flex items-center gap-2 border-r border-slate-800 pr-4">
+                <button onClick={() => handleZoom('out')} className="text-slate-400 hover:text-white p-1">
+                  <ZoomOut size={16} />
+                </button>
+                <span className="text-xs font-bold min-w-[32px] text-center">{zoomLevel}%</span>
+                <button onClick={() => handleZoom('in')} className="text-slate-400 hover:text-white p-1">
+                  <ZoomIn size={16} />
+                </button>
+              </div>
+
+              {/* Page Navigation */}
+              <div className="flex items-center gap-2 text-xs font-bold mr-4">
+                <button onClick={() => handlePageChange('prev')} className="text-slate-400 hover:text-white p-1">
+                  <ChevronLeft size={16} />
+                </button>
+                <span>Page {activePageIdx + 1} of {ansImages.length}</span>
+                <button onClick={() => handlePageChange('next')} className="text-slate-400 hover:text-white p-1">
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+
+              <button 
+                onClick={() => setIsFullscreen(false)}
+                className="bg-red-650 hover:bg-red-700 text-white font-extrabold text-xs px-4 py-2 rounded-full transition shadow-md"
+              >
+                Exit Fullscreen
+              </button>
+            </div>
+          </div>
+
+          {/* Fullscreen Canvas Scroll Area */}
+          <div className="flex-1 overflow-auto p-8 flex flex-col items-center justify-start bg-[#141517]">
+            <div 
+              style={{ width: `${zoomLevel}%`, maxWidth: zoomLevel > 100 ? 'none' : '48rem' }}
+              className="space-y-6 transition-all duration-200 w-full"
+            >
+              {ansImages.map((imgUrl, idx) => {
+                const highlightBoxes = currentSelectedAnswer
+                  ? (currentSelectedAnswer.locations && currentSelectedAnswer.locations.length > 0
+                      ? currentSelectedAnswer.locations.filter(loc => loc.pageIndex === idx).map(loc => loc.boundingBox)
+                      : (currentSelectedAnswer.pageIndex === idx ? [currentSelectedAnswer.boundingBox] : []))
+                  : [];
+
+                return (
+                  <div 
+                    key={`fs-sheet-canvas-${idx}`}
+                    className="relative rounded-none border border-slate-900 bg-white shadow-2xl select-none mb-8"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={imgUrl} 
+                      alt={`Answer Sheet Page ${idx + 1}`}
+                      className="w-full h-auto object-contain"
+                    />
+
+                    {highlightBoxes.map((box, boxIdx) => (
+                      <div 
+                        key={`fs-highlight-box-${idx}-${boxIdx}`}
+                        style={{
+                          top: `${box.ymin / 10}%`,
+                          left: `${box.xmin / 10}%`,
+                          height: `${(box.ymax - box.ymin) / 10}%`,
+                          width: `${(box.xmax - box.xmin) / 10}%`,
+                        }}
+                        className="absolute border-2 border-[#34a853] bg-[#34a853]/5 rounded-xl pointer-events-none transition-all duration-300"
+                      >
+                        <span className="absolute -top-[21px] -left-[1.5px] text-[10px] font-extrabold px-2.5 py-0.5 rounded-t-lg text-white bg-[#34a853] pointer-events-none select-none z-10">
+                          Q{selectedQuestionNumber}
+                        </span>
+                      </div>
+                    ))}
+
+                    <div className="absolute bottom-4 right-4 text-[10px] font-bold text-slate-400 bg-white/80 px-2 py-0.5 rounded border border-slate-200 backdrop-blur-sm">
+                      Page {idx + 1}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
