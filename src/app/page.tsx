@@ -1233,23 +1233,39 @@ export default function AssessmentDashboard() {
                 <div className="flex flex-col h-[calc(100vh-6.5rem)] overflow-hidden space-y-4">
                   
                   {/* Overall Grading Summary Scoreboard Banner */}
-                  <div className="bg-white border border-slate-200 rounded-3xl p-4 md:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-shrink-0 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-[#fcf8f2] border border-[#f95738]/10 rounded-2xl px-4 py-2.5 text-center flex-shrink-0">
-                        <span className="block text-[9px] uppercase tracking-wider font-extrabold text-[#f95738]">Overall Score</span>
-                        <span className="text-xl font-black text-slate-900">
-                          {result.overallSummary.totalMarksObtained} <span className="text-xs text-slate-400 font-medium">/ {result.overallSummary.totalPossibleMarks}</span>
-                        </span>
+                  <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4 flex-shrink-0">
+                    
+                    {/* Left/Main Section */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                      {/* Mobile Top Row: Score box + Title */}
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <div className="bg-[#fcf8f2] border border-[#f95738]/15 rounded-2xl px-4 py-2.5 text-center flex-shrink-0 shadow-xs">
+                          <span className="block text-[9px] uppercase tracking-wider font-extrabold text-[#f95738]">Overall Score</span>
+                          <span className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+                            {result.overallSummary.totalMarksObtained} <span className="text-xs text-slate-400 font-medium">/ {result.overallSummary.totalPossibleMarks}</span>
+                          </span>
+                        </div>
+
+                        {/* Title visible beside score on mobile */}
+                        <div className="sm:hidden flex-1 min-w-0">
+                          <h4 className="font-extrabold text-sm text-slate-900 truncate">{subjectName || 'Exam'} Dashboard</h4>
+                          <span className="inline-block mt-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                            Evaluation Complete
+                          </span>
+                        </div>
                       </div>
+
+                      {/* Desktop Title & Feedback (flows full-width on mobile below score badge) */}
                       <div className="min-w-0 flex-1">
-                        <h4 className="font-bold text-sm text-slate-900 leading-snug">{subjectName} Evaluation Dashboard</h4>
-                        <p className="text-xs text-slate-400 mt-1 leading-normal text-wrap break-words">{result.overallSummary.overallFeedback}</p>
+                        <h4 className="hidden sm:block font-bold text-sm text-slate-900 leading-snug">{subjectName || 'Exam'} Evaluation Dashboard</h4>
+                        <p className="text-xs text-slate-500 mt-0.5 sm:mt-1 leading-relaxed">{result.overallSummary.overallFeedback}</p>
                       </div>
                     </div>
                     
+                    {/* Start New Evaluation Button */}
                     <button 
                       onClick={() => { setResult(null); setQpFile(null); setAnsFile(null); }}
-                      className="text-xs font-bold text-slate-500 hover:text-slate-800 px-4 py-2 border border-slate-200 rounded-full hover:bg-slate-50 transition"
+                      className="w-full sm:w-auto text-center text-xs font-bold text-slate-600 hover:text-slate-900 px-4 py-2.5 sm:py-2 border border-slate-200 hover:border-slate-300 rounded-full hover:bg-slate-50 bg-slate-50/50 sm:bg-white transition flex-shrink-0"
                     >
                       Start New Evaluation
                     </button>
