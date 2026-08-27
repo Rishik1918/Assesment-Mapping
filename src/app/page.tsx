@@ -739,13 +739,11 @@ export default function AssessmentDashboard() {
                         setActiveTab('exams');
                       }
                     }}
-                    title={item.disabled ? `${item.label} (Coming Soon)` : item.label}
+                    title={item.label}
                     className={`w-11 h-11 flex items-center justify-center rounded-xl transition mx-auto ${
                       isSelected 
                         ? 'bg-slate-100 text-slate-900 shadow-sm' 
-                        : item.disabled 
-                          ? 'text-slate-300 cursor-not-allowed opacity-50' 
-                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >
                     <Icon size={18} className={item.highlightIcon && isSelected ? 'text-[#f95738]' : ''} />
@@ -761,24 +759,15 @@ export default function AssessmentDashboard() {
                       setActiveTab('exams');
                     }
                   }}
-                  title={item.disabled ? `${item.label} (Coming Soon)` : item.label}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
+                  title={item.label}
+                  className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
                     isSelected 
                       ? 'bg-slate-100 text-slate-900 font-bold' 
-                      : item.disabled 
-                        ? 'text-slate-400 cursor-not-allowed opacity-60' 
-                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <div className="flex items-center gap-3.5">
-                    <Icon size={17} className={item.highlightIcon && isSelected ? 'text-[#f95738]' : ''} />
-                    <span>{item.label}</span>
-                  </div>
-                  {item.disabled && (
-                    <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded tracking-wider">
-                      Soon
-                    </span>
-                  )}
+                  <Icon size={17} className={item.highlightIcon && isSelected ? 'text-[#f95738]' : ''} />
+                  <span>{item.label}</span>
                 </button>
               );
             })}
