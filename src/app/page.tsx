@@ -373,7 +373,7 @@ const MOCK_RESULT: AssessmentResult = {
 };
 
 export default function AssessmentDashboard() {
-  const [activeTab, setActiveTab] = useState<'exams' | 'home' | 'classroom' | 'assignments' | 'library' | 'settings'>('exams');
+  const [activeTab, setActiveTab] = useState<'exams' | 'settings'>('exams');
   const [geminiApiKey, setGeminiApiKey] = useState<string>('');
   
   // Files and images
@@ -721,11 +721,11 @@ export default function AssessmentDashboard() {
           {/* Menu Items */}
           <nav className="space-y-2 w-full">
             {[
-              { id: 'home', label: 'Home', icon: Home },
-              { id: 'classroom', label: 'My Classroom', icon: Users },
-              { id: 'assignments', label: 'Assignments', icon: FileText },
-              { id: 'exams', label: 'Exams', icon: CheckSquare, highlightIcon: true },
-              { id: 'library', label: 'My Library', icon: Library }
+              { id: 'home', label: 'Home', icon: Home, disabled: true },
+              { id: 'classroom', label: 'My Classroom', icon: Users, disabled: true },
+              { id: 'assignments', label: 'Assignments', icon: FileText, disabled: true },
+              { id: 'exams', label: 'Exams', icon: CheckSquare, highlightIcon: true, disabled: false },
+              { id: 'library', label: 'My Library', icon: Library, disabled: true }
             ].map((item) => {
               const Icon = item.icon;
               const isSelected = activeTab === item.id;
@@ -735,11 +735,18 @@ export default function AssessmentDashboard() {
                   <button
                     key={item.id}
                     onClick={() => {
-                      setActiveTab(item.id as 'home' | 'exams' | 'classroom' | 'assignments' | 'library' | 'settings');
-                      if (item.id === 'exams') setResult(null);
+                      if (!item.disabled) {
+                        setActiveTab('exams');
+                      }
                     }}
-                    title={item.label}
-                    className={`w-11 h-11 flex items-center justify-center rounded-xl transition mx-auto ${isSelected ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+                    title={item.disabled ? `${item.label} (Coming Soon)` : item.label}
+                    className={`w-11 h-11 flex items-center justify-center rounded-xl transition mx-auto ${
+                      isSelected 
+                        ? 'bg-slate-100 text-slate-900 shadow-sm' 
+                        : item.disabled 
+                          ? 'text-slate-300 cursor-not-allowed opacity-50' 
+                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
                   >
                     <Icon size={18} className={item.highlightIcon && isSelected ? 'text-[#f95738]' : ''} />
                   </button>
@@ -750,13 +757,28 @@ export default function AssessmentDashboard() {
                 <button 
                   key={item.id}
                   onClick={() => {
-                    setActiveTab(item.id as 'home' | 'exams' | 'classroom' | 'assignments' | 'library' | 'settings');
-                    if (item.id === 'exams') setResult(null);
+                    if (!item.disabled) {
+                      setActiveTab('exams');
+                    }
                   }}
-                  className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${isSelected ? 'bg-slate-100 text-slate-900 font-bold' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+                  title={item.disabled ? `${item.label} (Coming Soon)` : item.label}
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
+                    isSelected 
+                      ? 'bg-slate-100 text-slate-900 font-bold' 
+                      : item.disabled 
+                        ? 'text-slate-400 cursor-not-allowed opacity-60' 
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
                 >
-                  <Icon size={17} className={item.highlightIcon && isSelected ? 'text-[#f95738]' : ''} />
-                  <span>{item.label}</span>
+                  <div className="flex items-center gap-3.5">
+                    <Icon size={17} className={item.highlightIcon && isSelected ? 'text-[#f95738]' : ''} />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.disabled && (
+                    <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded tracking-wider">
+                      Soon
+                    </span>
+                  )}
                 </button>
               );
             })}
