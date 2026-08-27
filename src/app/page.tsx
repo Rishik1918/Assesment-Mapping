@@ -5,7 +5,8 @@ import {
   AlertCircle, Settings, Info, Sparkles, 
   Home, Users, FileText, CheckSquare, Library, ArrowLeft, 
   HelpCircle, Bell, ChevronDown, ZoomIn, ZoomOut, 
-  ChevronLeft, ChevronRight, ArrowRight, ChevronsRight, ChevronsLeft, Menu
+  ChevronLeft, ChevronRight, ArrowRight, ChevronsRight, ChevronsLeft, Menu,
+  Maximize2, X
 } from 'lucide-react';
 import { processFileToImages, getPdfPageCount, checkPdfSwapLocally } from '@/utils/pdf';
 
@@ -1370,41 +1371,42 @@ export default function AssessmentDashboard() {
                     <div className={`flex-1 bg-white border border-slate-200 rounded-3xl flex flex-col overflow-hidden shadow-sm ${mobileActiveView === 'sheet' ? 'flex' : 'hidden lg:flex'}`}>
                       
                       {/* Canvas Header Zoom / Page controls */}
-                      <div className="border-b border-slate-100 p-3 lg:p-4 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
+                      <div className="border-b border-slate-100 p-2.5 sm:p-3 lg:p-4 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
                         <span className="text-xs font-extrabold text-slate-900 hidden lg:inline">Answer Sheet</span>
-                        <div className="flex items-center justify-between w-full lg:w-auto lg:justify-end gap-2 lg:gap-6 bg-[#1c1d1f] lg:bg-transparent text-white lg:text-slate-700 p-2 lg:p-0 rounded-2xl lg:rounded-none shadow-md lg:shadow-none mx-auto lg:mx-0 max-w-[340px] lg:max-w-none">
+                        <div className="flex items-center justify-between w-full lg:w-auto lg:justify-end gap-1.5 sm:gap-3 lg:gap-6 bg-[#1c1d1f] lg:bg-transparent text-white lg:text-slate-700 px-2.5 sm:px-3 py-2 lg:p-0 rounded-2xl lg:rounded-none shadow-md lg:shadow-none mx-auto lg:mx-0 w-full lg:max-w-none">
                           
                           {/* Zoom Controls */}
-                          <div className="flex items-center gap-2 border-r border-slate-800 lg:border-slate-200 pr-3 lg:pr-4">
-                            <button onClick={() => handleZoom('out')} className="text-slate-400 hover:text-white lg:hover:text-slate-850 p-1">
-                              <ZoomOut size={15} />
+                          <div className="flex items-center gap-1 sm:gap-1.5 border-r border-slate-800 lg:border-slate-200 pr-2 sm:pr-3 lg:pr-4 flex-shrink-0">
+                            <button onClick={() => handleZoom('out')} className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1 transition" title="Zoom Out">
+                              <ZoomOut size={14} />
                             </button>
-                            <span className="text-xs font-extrabold min-w-[32px] text-center">{zoomLevel}%</span>
-                            <button onClick={() => handleZoom('in')} className="text-slate-400 hover:text-white lg:hover:text-slate-850 p-1">
-                              <ZoomIn size={15} />
+                            <span className="text-[11px] sm:text-xs font-extrabold min-w-[28px] text-center">{zoomLevel}%</span>
+                            <button onClick={() => handleZoom('in')} className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1 transition" title="Zoom In">
+                              <ZoomIn size={14} />
                             </button>
                           </div>
 
                           {/* Navigation indicator */}
-                          <div className="flex items-center gap-2 text-xs font-extrabold pr-3 lg:pr-4 border-r border-slate-800 lg:border-slate-200">
-                            <button onClick={() => handlePageChange('prev')} className="text-slate-400 hover:text-white lg:hover:text-slate-850 p-1">
-                              <ChevronLeft size={15} />
+                          <div className="flex items-center gap-1 sm:gap-2 text-[11px] sm:text-xs font-extrabold pr-2 sm:pr-3 lg:pr-4 border-r border-slate-800 lg:border-slate-200 whitespace-nowrap flex-shrink-0">
+                            <button onClick={() => handlePageChange('prev')} className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1 transition" title="Previous Page">
+                              <ChevronLeft size={14} />
                             </button>
-                            <span>
+                            <span className="whitespace-nowrap select-none font-bold">
                               Page {activePageIdx + 1} of {ansImages.length}
                             </span>
-                            <button onClick={() => handlePageChange('next')} className="text-slate-400 hover:text-white lg:hover:text-slate-850 p-1">
-                              <ChevronRight size={15} />
+                            <button onClick={() => handlePageChange('next')} className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1 transition" title="Next Page">
+                              <ChevronRight size={14} />
                             </button>
                           </div>
 
                           {/* Full Screen option */}
                           <button 
                             onClick={() => setIsFullscreen(true)}
-                            className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1 flex items-center gap-1 text-[11px] font-extrabold uppercase tracking-wide"
+                            className="text-slate-400 hover:text-white lg:hover:text-slate-800 p-1 flex items-center gap-1 text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wide whitespace-nowrap flex-shrink-0 transition"
                             title="View Fullscreen"
                           >
-                            <span>Fullscreen</span>
+                            <Maximize2 size={13} />
+                            <span className="hidden sm:inline">Fullscreen</span>
                           </button>
 
                         </div>
@@ -1480,36 +1482,38 @@ export default function AssessmentDashboard() {
       {isFullscreen && (
         <div className="fixed inset-0 bg-[#2d2f31] z-[999] flex flex-col overflow-hidden animate-in fade-in duration-200">
           {/* Fullscreen Header */}
-          <div className="bg-[#1c1d1f] p-4 flex items-center justify-between text-white border-b border-slate-800">
-            <span className="text-xs font-extrabold">Answer Sheet (Fullscreen)</span>
-            <div className="flex items-center gap-4">
+          <div className="bg-[#1c1d1f] px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between text-white border-b border-slate-800 flex-shrink-0">
+            <span className="text-xs font-extrabold hidden sm:inline">Answer Sheet (Fullscreen)</span>
+            <div className="flex items-center justify-between w-full sm:w-auto gap-2 sm:gap-4">
               {/* Zoom Controls */}
-              <div className="flex items-center gap-2 border-r border-slate-800 pr-4">
-                <button onClick={() => handleZoom('out')} className="text-slate-400 hover:text-white p-1">
-                  <ZoomOut size={16} />
+              <div className="flex items-center gap-1 sm:gap-2 border-r border-slate-800 pr-2 sm:pr-4 flex-shrink-0">
+                <button onClick={() => handleZoom('out')} className="text-slate-400 hover:text-white p-1 transition" title="Zoom Out">
+                  <ZoomOut size={15} />
                 </button>
-                <span className="text-xs font-bold min-w-[32px] text-center">{zoomLevel}%</span>
-                <button onClick={() => handleZoom('in')} className="text-slate-400 hover:text-white p-1">
-                  <ZoomIn size={16} />
+                <span className="text-xs font-bold min-w-[28px] text-center">{zoomLevel}%</span>
+                <button onClick={() => handleZoom('in')} className="text-slate-400 hover:text-white p-1 transition" title="Zoom In">
+                  <ZoomIn size={15} />
                 </button>
               </div>
 
               {/* Page Navigation */}
-              <div className="flex items-center gap-2 text-xs font-bold mr-4">
-                <button onClick={() => handlePageChange('prev')} className="text-slate-400 hover:text-white p-1">
-                  <ChevronLeft size={16} />
+              <div className="flex items-center gap-1 sm:gap-2 text-xs font-bold whitespace-nowrap flex-shrink-0">
+                <button onClick={() => handlePageChange('prev')} className="text-slate-400 hover:text-white p-1 transition" title="Previous Page">
+                  <ChevronLeft size={15} />
                 </button>
-                <span>Page {activePageIdx + 1} of {ansImages.length}</span>
-                <button onClick={() => handlePageChange('next')} className="text-slate-400 hover:text-white p-1">
-                  <ChevronRight size={16} />
+                <span className="whitespace-nowrap select-none font-bold">Page {activePageIdx + 1} of {ansImages.length}</span>
+                <button onClick={() => handlePageChange('next')} className="text-slate-400 hover:text-white p-1 transition" title="Next Page">
+                  <ChevronRight size={15} />
                 </button>
               </div>
 
               <button 
                 onClick={() => setIsFullscreen(false)}
-                className="bg-red-650 hover:bg-red-700 text-white font-extrabold text-xs px-4 py-2 rounded-full transition shadow-md"
+                className="bg-[#f95738] hover:bg-[#e04526] text-white font-extrabold text-xs px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition shadow-md flex items-center gap-1 flex-shrink-0"
               >
-                Exit Fullscreen
+                <X size={14} className="sm:hidden" />
+                <span className="hidden sm:inline">Exit Fullscreen</span>
+                <span className="sm:hidden text-[11px]">Exit</span>
               </button>
             </div>
           </div>
