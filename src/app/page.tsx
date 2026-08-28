@@ -968,9 +968,8 @@ export default function AssessmentDashboard() {
             height: '56px',
             borderRadius: '16px',
             gap: '10px',
-            opacity: 1,
           }}
-          className="relative flex items-center justify-between bg-white border border-slate-200/90 shadow-xs flex-shrink-0 select-none px-3 sm:pl-6 sm:pr-2"
+          className="relative flex items-center justify-between bg-white/70 backdrop-blur-md border border-white/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex-shrink-0 select-none px-3 sm:pl-6 sm:pr-2 transition-colors"
         >
           {/* Left section: Exam field */}
           <div 
