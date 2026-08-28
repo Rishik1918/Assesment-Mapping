@@ -232,13 +232,15 @@ Guidelines:
       text: "Please output the final result in JSON strictly conforming to the requested schema."
     });
 
-    // Multi-model fallback sequence for optimal speed, high accuracy, and 100% uptime
+    // Multi-model pipeline prioritizing Gemini 3.7 / 3.6 with instantaneous high-speed fallback
     const cleanApiKey = apiKey.trim();
     const candidateModels = [
       'gemini-3.7-flash',
       'gemini-3.6-flash',
-      'gemini-3.5-flash',
-      'gemini-3-flash'
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro'
     ];
 
     let resultText = '';
@@ -246,6 +248,9 @@ Guidelines:
 
     for (const modelName of candidateModels) {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(cleanApiKey)}`;
         const apiResponse = await fetch(url, {
           method: 'POST',
@@ -263,16 +268,19 @@ Guidelines:
               responseSchema: responseSchema,
               temperature: 0.1,
             }
-          })
+          }),
+          signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         const resData = await apiResponse.json();
         if (apiResponse.ok && resData.candidates?.[0]?.content?.parts?.[0]?.text) {
           resultText = resData.candidates[0].content.parts[0].text;
-          break; // Succeeded with fastest accurate model
+          break; // Successfully completed extraction!
         } else {
-          const errorMsg = resData.error?.message || `API responded with status ${apiResponse.status}`;
-          lastError = new Error(`Model ${modelName}: ${errorMsg}`);
+          const errorMsg = resData.error?.message || `Status ${apiResponse.status}`;
+          lastError = new Error(`[${modelName}] ${errorMsg}`);
         }
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err));
@@ -280,7 +288,7 @@ Guidelines:
     }
 
     if (!resultText) {
-      throw lastError || new Error('Could not process the documents with the Gemini API.');
+      throw lastError || new Error('Could not process the documents with Gemini AI. Please check your API key.');
     }
 
     const resultJson = JSON.parse(resultText);
