@@ -232,16 +232,45 @@ Guidelines:
       text: "Please output the final result in JSON strictly conforming to the requested schema."
     });
 
-    // Multi-model pipeline prioritizing Gemini 3.7 / 3.6 with instantaneous high-speed fallback
     const cleanApiKey = apiKey.trim();
-    const candidateModels = [
-      'gemini-3.7-flash',
-      'gemini-3.6-flash',
-      'gemini-2.5-flash',
+
+    // 1. Dynamic Model Discovery: Automatically query supported models for this API key
+    let candidateModels = [
       'gemini-2.0-flash',
+      'gemini-2.0-flash-exp',
+      'gemini-1.5-flash-latest',
       'gemini-1.5-flash',
+      'gemini-1.5-pro-latest',
       'gemini-1.5-pro'
     ];
+
+    try {
+      const listController = new AbortController();
+      const listTimeout = setTimeout(() => listController.abort(), 4000);
+      const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(cleanApiKey)}`, {
+        signal: listController.signal
+      });
+      clearTimeout(listTimeout);
+
+      if (listResp.ok) {
+        const listData = await listResp.json();
+        if (listData.models && Array.isArray(listData.models)) {
+          const supported = listData.models
+            .filter((m: { supportedGenerationMethods?: string[] }) => m.supportedGenerationMethods?.includes('generateContent'))
+            .map((m: { name: string }) => m.name.replace('models/', ''));
+
+          // Prioritize flash models for sub-3s extraction speed
+          const flashModels = supported.filter((m: string) => m.includes('flash'));
+          const otherModels = supported.filter((m: string) => !m.includes('flash'));
+          const discovered = [...flashModels, ...otherModels];
+          if (discovered.length > 0) {
+            candidateModels = discovered;
+          }
+        }
+      }
+    } catch {
+      // Fallback candidate list is retained if ListModels times out
+    }
 
     let resultText = '';
     let lastError: Error | null = null;
@@ -249,7 +278,7 @@ Guidelines:
     for (const modelName of candidateModels) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(cleanApiKey)}`;
         const apiResponse = await fetch(url, {
@@ -288,7 +317,7 @@ Guidelines:
     }
 
     if (!resultText) {
-      throw lastError || new Error('Could not process the documents with Gemini AI. Please check your API key.');
+      throw lastError || new Error('Could not process the documents with Gemini AI. Please verify your API key.');
     }
 
     const resultJson = JSON.parse(resultText);
