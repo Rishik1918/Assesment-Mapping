@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  AlertCircle, Info, Sparkles, ArrowLeft, 
-  HelpCircle, Bell, ChevronDown, ZoomIn, ZoomOut, 
+  AlertCircle, Info, Sparkles, 
+  ZoomIn, ZoomOut, 
   ChevronLeft, ChevronRight, ArrowRight, Menu,
-  Maximize2, X, PanelLeftClose
+  Maximize2, X
 } from 'lucide-react';
 import { processFileToImages, getPdfPageCount, checkPdfSwapLocally } from '@/utils/pdf';
 
@@ -682,32 +682,60 @@ export default function AssessmentDashboard() {
   const currentSelectedAnswer = result?.answers.find(a => a.questionNumber === selectedQuestionNumber);
 
   return (
-    <div className="flex h-screen bg-[#f4f5f6] text-slate-800 font-sans overflow-hidden">
+    <div 
+      style={{
+        background: 'linear-gradient(180deg, #F5F5F5 0%, #E9E5E5 100%)',
+      }}
+      className="flex h-screen text-slate-800 font-sans overflow-hidden p-3 gap-3 relative"
+    >
+      {/* Ambient Bottom Glow / Shadow from Figma */}
+      <div 
+        style={{
+          position: 'absolute',
+          width: '1318px',
+          height: '428px',
+          top: '679px',
+          left: '227px',
+          backgroundColor: '#17171766',
+          filter: 'blur(400px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+          opacity: 1,
+        }}
+      />
       
       {/* 1. FIGMA SIDEBAR */}
       <aside 
         style={{
           width: isSidebarCollapsed ? '82px' : '304px',
           minWidth: isSidebarCollapsed ? '82px' : '304px',
-          height: 'calc(100vh - 24px)',
+          height: '100%',
           borderRadius: '16px',
           padding: isSidebarCollapsed ? '24px 12px' : '24px',
           justifyContent: 'space-between',
           opacity: 1,
         }}
-        className="hidden lg:flex flex-col bg-white border border-slate-200 shadow-xs flex-shrink-0 transition-all duration-300 ease-in-out my-3 ml-3 relative z-30 select-none overflow-y-auto"
+        className="hidden lg:flex flex-col bg-white shadow-xs flex-shrink-0 transition-all duration-300 ease-in-out relative z-30 select-none overflow-hidden"
       >
         <div className="space-y-6 w-full">
           {/* Logo & Title & Collapse */}
           {isSidebarCollapsed ? (
-            <div className="flex flex-col items-center gap-4 py-1 select-none">
+            <div className="flex flex-col items-center gap-4 py-1 select-none w-full">
               <button 
                 onClick={() => setIsSidebarCollapsed(false)}
                 title="Expand Sidebar"
-                className="w-10 h-10 flex items-center justify-center hover:opacity-80 transition"
+                className="w-10 h-10 flex items-center justify-center hover:opacity-80 transition cursor-pointer"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/sidebar/logo.png" alt="VedaAI Logo" className="w-10 h-10 object-contain shadow-sm rounded-xl" />
+                <img src="/sidebar/logo.png" alt="VedaAI Logo" className="w-10 h-10 object-contain shadow-xs rounded-xl" />
+              </button>
+              <button 
+                onClick={() => setIsSidebarCollapsed(false)}
+                title="Expand Sidebar"
+                className="p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/sidebar/collapse.png" alt="Expand Sidebar" className="w-5 h-5 object-contain" />
               </button>
             </div>
           ) : (
@@ -722,9 +750,10 @@ export default function AssessmentDashboard() {
               <button 
                 onClick={() => setIsSidebarCollapsed(true)}
                 title="Collapse Sidebar"
-                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg transition hover:bg-slate-100"
+                className="p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
               >
-                <PanelLeftClose size={20} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/sidebar/collapse.png" alt="Collapse Sidebar" className="w-5 h-5 object-contain" />
               </button>
             </div>
           )}
@@ -772,17 +801,17 @@ export default function AssessmentDashboard() {
                       }
                     }}
                     title={item.label}
-                    className={`w-11 h-11 flex items-center justify-center rounded-xl transition mx-auto ${
+                    className={`w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 group mx-auto ${
                       isSelected 
                         ? 'bg-[#F0F2F5] text-slate-900 shadow-xs' 
-                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={item.iconImg} 
                       alt={item.label} 
-                      className={`w-[18px] h-[18px] object-contain transition ${isSelected ? 'opacity-100' : 'opacity-70'}`} 
+                      className={`w-[22px] h-[22px] object-contain transition-all duration-200 group-hover:scale-110 ${isSelected ? 'opacity-100 scale-105' : 'opacity-70'}`} 
                     />
                   </button>
                 );
@@ -797,17 +826,17 @@ export default function AssessmentDashboard() {
                     }
                   }}
                   title={item.label}
-                  className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition ${
+                  className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all duration-200 group ${
                     isSelected 
-                      ? 'bg-[#F0F2F5] text-slate-900 font-bricolage font-medium text-[16px] leading-[140%] tracking-[-0.04em] align-middle' 
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bricolage font-normal text-[16px] leading-[140%] tracking-[-0.04em] align-middle'
+                      ? 'bg-[#F0F2F5] text-slate-900 font-bricolage font-medium text-[16px] leading-[140%] tracking-[-0.04em] align-middle shadow-xs' 
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-bricolage font-normal text-[16px] leading-[140%] tracking-[-0.04em] align-middle'
                   }`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={item.iconImg} 
                     alt={item.label} 
-                    className={`w-[18px] h-[18px] object-contain flex-shrink-0 transition ${isSelected ? 'opacity-100' : 'opacity-70'}`} 
+                    className={`w-[22px] h-[22px] object-contain flex-shrink-0 transition-transform duration-200 group-hover:scale-110 ${isSelected ? 'opacity-100 scale-105' : 'opacity-70'}`} 
                   />
                   <span className="align-middle">{item.label}</span>
                 </button>
@@ -829,33 +858,30 @@ export default function AssessmentDashboard() {
             <button 
               onClick={() => setActiveTab('settings')}
               title="Settings"
-              className={`w-11 h-11 flex items-center justify-center rounded-xl transition mx-auto ${activeTab === 'settings' ? 'bg-[#F0F2F5] text-slate-900' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+              className={`w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 group mx-auto ${activeTab === 'settings' ? 'bg-[#F0F2F5] text-slate-900 shadow-xs' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/sidebar/settings-icon.png" alt="Settings" className="w-[18px] h-[18px] object-contain opacity-75" />
+              <img src="/sidebar/settings-icon.png" alt="Settings" className="w-[22px] h-[22px] object-contain opacity-75 group-hover:scale-110 transition-transform duration-200" />
             </button>
           ) : (
             <button 
               onClick={() => setActiveTab('settings')}
               style={{
                 width: '256px',
-                height: '38px',
-                paddingTop: '8px',
-                paddingRight: '12px',
-                paddingBottom: '8px',
-                paddingLeft: '12px',
-                gap: '8px',
+                height: '44px',
+                borderRadius: '12px',
+                gap: '12px',
+                paddingTop: '10px',
+                paddingRight: '14px',
+                paddingBottom: '10px',
+                paddingLeft: '14px',
                 opacity: 1,
               }}
-              className={`w-full flex items-center gap-2 rounded-xl transition font-bricolage font-normal text-[16px] leading-[140%] tracking-[-0.04em] align-middle ${
-                activeTab === 'settings' 
-                  ? 'bg-[#F0F2F5] text-slate-900' 
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
+              className={`w-full flex items-center gap-3.5 rounded-xl transition-all duration-200 group ${activeTab === 'settings' ? 'bg-[#F0F2F5] text-slate-900 font-medium shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/sidebar/settings-icon.png" alt="Settings" className="w-[18px] h-[18px] object-contain opacity-75 flex-shrink-0" />
-              <span className="align-middle">Settings</span>
+              <img src="/sidebar/settings-icon.png" alt="Settings" className="w-[22px] h-[22px] object-contain flex-shrink-0 opacity-75 group-hover:scale-110 transition-transform duration-200" />
+              <span className="font-bricolage font-normal text-[16px] leading-[140%] tracking-[-0.04em] align-middle">Settings</span>
             </button>
           )}
 
@@ -863,7 +889,7 @@ export default function AssessmentDashboard() {
           {isSidebarCollapsed ? (
             <div 
               title={`${schoolName} - ${schoolBranch}`}
-              className="bg-[#F0F2F5] border border-slate-200 rounded-xl w-11 h-11 flex items-center justify-center shadow-xs cursor-pointer p-1"
+              className="bg-[#F0F2F5] rounded-[20px] w-11 h-11 flex items-center justify-center cursor-pointer p-1"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/sidebar/dps-logo.png" alt="DPS" className="w-full h-full object-contain" />
@@ -872,21 +898,24 @@ export default function AssessmentDashboard() {
             <div 
               style={{
                 width: '256px',
-                minHeight: '84px',
-                borderRadius: '16px',
-                gap: '16px',
-                padding: '12px',
-                opacity: 1,
+                minHeight: '72px',
+                borderRadius: '20px',
+                backgroundColor: '#F0F2F5',
+                gap: '12px',
+                padding: '12px 16px',
               }}
-              className="bg-[#F0F2F5] border border-slate-200/80 flex items-center gap-3.5 w-full select-none"
+              className="flex items-center gap-3.5 select-none transition mt-1"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/sidebar/dps-logo.png" alt="DPS Logo" className="w-[42px] h-[42px] object-contain flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="font-bricolage font-bold text-[16px] leading-[140%] tracking-[-0.04em] text-slate-900 truncate align-middle">
+              {/* School Logo */}
+              <div className="w-[44px] h-[44px] flex-shrink-0 flex items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/sidebar/dps-logo.png" alt="Delhi Public School Logo" className="w-full h-full object-contain hover:scale-105 transition-transform duration-200" />
+              </div>
+              <div className="min-w-0 flex-1 leading-tight">
+                <p className="font-bricolage font-bold text-[16px] leading-[22px] tracking-[-0.04em] text-slate-900 truncate align-middle">
                   {schoolName}
                 </p>
-                <p className="font-bricolage font-normal text-[14px] leading-[140%] tracking-[-0.04em] text-slate-500 truncate align-middle">
+                <p className="font-bricolage font-normal text-[13px] leading-[18px] tracking-[-0.04em] text-[#5E5E5E] truncate align-middle">
                   {schoolBranch}
                 </p>
               </div>
@@ -895,82 +924,187 @@ export default function AssessmentDashboard() {
         </div>
       </aside>
 
-      {/* MAIN CONTAINER */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f4f5f6] my-0 lg:my-3 lg:mr-3 lg:rounded-2xl lg:border lg:border-slate-200/80 shadow-xs relative">
+      {/* RIGHT WORKSPACE: TOP BAR + MAIN CONTENT */}
+      <div className="flex-1 flex flex-col min-w-0 h-full gap-3 overflow-hidden">
         
-        {/* HEADER BAR */}
-        <header className="relative flex items-center justify-between bg-white border-b border-slate-200 h-16 px-4 sm:px-6 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            {(activeTab !== 'exams' || result || qpFile || ansFile) && (
-              <button 
-                onClick={handleBackNavigation}
-                className="text-slate-400 hover:text-slate-800 transition p-1 mr-1"
-                title="Go Back"
-              >
-                <ArrowLeft size={18} />
-              </button>
-            )}
+        {/* FIGMA TOP BAR */}
+        <header 
+          style={{
+            height: '56px',
+            borderRadius: '16px',
+            gap: '10px',
+            opacity: 1,
+          }}
+          className="relative flex items-center justify-between bg-white border border-slate-200/90 shadow-xs flex-shrink-0 select-none px-3 sm:pl-6 sm:pr-2"
+        >
+          {/* Left section: Exam field */}
+          <div 
+            style={{
+              height: '20px',
+              gap: '8px',
+              opacity: 1,
+            }}
+            className="flex items-center gap-2 sm:gap-2.5 max-w-[663px]"
+          >
+            {/* Back Button: Always visible in top bar, functional when another page/state is active */}
+            {(() => {
+              const canGoBack = (activeTab !== 'exams' || Boolean(result) || Boolean(qpFile) || Boolean(ansFile));
+              return (
+                <button 
+                  onClick={canGoBack ? handleBackNavigation : undefined}
+                  disabled={!canGoBack}
+                  className={`flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                    canGoBack 
+                      ? 'hover:scale-110 active:scale-95 cursor-pointer opacity-100' 
+                      : 'cursor-default opacity-40'
+                  }`}
+                  title={canGoBack ? 'Go Back' : ''}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/top_bar/back.png" alt="Back" className="w-[32px] h-[32px] sm:w-[36px] sm:h-[36px] object-contain" />
+                </button>
+              );
+            })()}
+
+            {/* Clipboard Icon */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/top_bar/clipboard.png" alt="Exams" className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] object-contain opacity-80 flex-shrink-0" />
+
             <div className="flex items-center gap-2 sm:hidden select-none">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-icon.png" alt="VedaAI Logo" className="w-5 h-5 object-contain antialiased" style={{ imageRendering: 'auto' }} />
-              <span className="text-sm font-black text-slate-900">VedaAI</span>
+              <img src="/sidebar/logo.png" alt="VedaAI Logo" className="w-6 h-6 object-contain antialiased" />
+              <span className="font-bricolage font-bold text-sm text-slate-900">VedaAI</span>
             </div>
-            <span className="text-sm font-extrabold text-slate-900 hidden sm:block">Exams</span>
+
+            <span className="font-bricolage font-semibold text-[15px] sm:text-[16px] leading-[100%] tracking-[-0.04em] text-slate-600 hidden sm:inline align-middle">
+              {activeTab === 'settings' ? 'Settings' : 'Exams'}
+            </span>
           </div>
           
-          <div className="flex items-center gap-2 sm:gap-4">
-            <HelpCircle size={18} className="hidden sm:block text-slate-400 cursor-pointer hover:text-slate-600" />
-            <div className="relative cursor-pointer hover:text-slate-600 p-1">
-              <Bell size={18} className="text-slate-400" />
-              <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#f95738] rounded-full" />
-            </div>
+          {/* Right section: Action Buttons + Madhur Rastogi */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
+            {/* Help Question Mark */}
+            <button 
+              title="Help"
+              className="hidden md:flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/top_bar/help.png" alt="Help" className="w-[32px] h-[32px] sm:w-[36px] sm:h-[36px] object-contain" />
+            </button>
+
+            {/* Bell Notifications */}
+            <button 
+              title="Notifications"
+              className="flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/top_bar/bell.png" alt="Notifications" className="w-[32px] h-[32px] sm:w-[36px] sm:h-[36px] object-contain" />
+            </button>
             
             {/* Sparkle Icon Circle Button */}
-            <div className="hidden sm:flex w-8 h-8 rounded-full border border-slate-200 items-center justify-center bg-white cursor-pointer hover:bg-slate-50 shadow-sm transition">
+            <button 
+              title="AI Assistant"
+              className="hidden md:flex items-center justify-center hover:scale-110 active:scale-95 cursor-pointer transition-all duration-200"
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/sparkle.png" alt="Sparkle" className="w-4 h-4 object-contain" />
-            </div>
+              <img src="/top_bar/sparkle.png" alt="Sparkle" className="w-[32px] h-[32px] sm:w-[36px] sm:h-[36px] object-contain" />
+            </button>
             
-            {/* User Account Info */}
-            <div className="flex items-center gap-2 sm:border-l sm:border-slate-200 sm:pl-4">
-              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/avatar.png" alt="Teacher Avatar" className="w-full h-full object-cover" />
+            {/* Madhur Rastogi Frame */}
+            <div 
+              style={{
+                gap: '8px',
+                paddingTop: '6px',
+                paddingRight: '6px',
+                paddingBottom: '6px',
+                paddingLeft: '6px',
+                opacity: 1,
+              }}
+              className="flex items-center justify-between hover:scale-[1.02] active:scale-98 transition-all duration-200 select-none cursor-pointer max-w-[207px]"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                {/* Avatar */}
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/top_bar/avatar.png" alt="Avatar" className="w-full h-full object-cover" />
+                </div>
+                <span className="font-bricolage font-semibold text-[14px] sm:text-[16px] leading-[100%] tracking-[-0.04em] text-slate-800 truncate align-middle hidden sm:inline">
+                  {teacherName || 'Madhur Rastogi'}
+                </span>
               </div>
-              <span className="hidden sm:inline text-xs font-extrabold text-slate-900">{teacherName}</span>
-              <ChevronDown size={14} className="hidden sm:block text-slate-400" />
+              {/* Chevron Down */}
+              <svg 
+                width="12" 
+                height="6" 
+                viewBox="0 0 12 6" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="flex-shrink-0"
+                style={{ opacity: 1 }}
+              >
+                <path d="M1 1L6 5L11 1" stroke="#303030" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
 
             {/* Hamburger Menu on Mobile */}
             <button 
               onClick={() => setIsMobileMenuOpen(prev => !prev)}
-              className="block sm:hidden text-slate-500 hover:text-slate-800 p-1 ml-1"
+              className="block lg:hidden text-slate-600 hover:text-slate-900 p-1.5 rounded-lg hover:bg-slate-100 transition"
+              title="Toggle Menu"
             >
-              <Menu size={20} />
+              <Menu size={22} />
             </button>
           </div>
 
           {/* Mobile Menu Dropdown Popover */}
           {isMobileMenuOpen && (
-            <div className="absolute top-14 right-4 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-150">
-              <button 
-                onClick={() => { setActiveTab('exams'); setIsMobileMenuOpen(false); }}
-                className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'exams' ? 'bg-[#1c1d1f] text-white' : 'text-slate-600 hover:bg-slate-55'}`}
-              >
-                Exams Dashboard
-              </button>
-              <button 
-                onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }}
-                className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'settings' ? 'bg-[#1c1d1f] text-white' : 'text-slate-600 hover:bg-slate-55'}`}
-              >
-                Settings & API Key
-              </button>
+            <div className="absolute top-14 right-3 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="space-y-1">
+                {[
+                  { id: 'home', label: 'Home', iconImg: '/sidebar/home.png' },
+                  { id: 'classroom', label: 'My Classroom', iconImg: '/sidebar/classroom.png' },
+                  { id: 'assignments', label: 'Assignments', iconImg: '/sidebar/assignments.png' },
+                  { id: 'exams', label: 'Exams', iconImg: '/sidebar/exams.png' },
+                  { id: 'library', label: 'My Library', iconImg: '/sidebar/library.png' },
+                  { id: 'settings', label: 'Settings', iconImg: '/sidebar/settings-icon.png' },
+                ].map((item) => (
+                  <button 
+                    key={item.id}
+                    onClick={() => { 
+                      if (item.id === 'exams' || item.id === 'settings') {
+                        setActiveTab(item.id);
+                      }
+                      setIsMobileMenuOpen(false); 
+                    }}
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${
+                      activeTab === item.id 
+                        ? 'bg-[#F0F2F5] text-slate-900 font-bricolage font-bold text-sm' 
+                        : 'text-slate-600 hover:bg-slate-50 font-bricolage text-sm'
+                    }`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={item.iconImg} alt={item.label} className="w-5 h-5 object-contain" />
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+              <hr className="border-slate-100" />
+              <div className="flex items-center gap-3 p-2 bg-[#F6F6F6] rounded-xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/sidebar/dps-logo.png" alt="DPS" className="w-8 h-8 object-contain" />
+                <div className="min-w-0 flex-1 leading-tight">
+                  <p className="font-bricolage font-bold text-xs text-slate-900 truncate">{schoolName}</p>
+                  <p className="font-bricolage text-[10px] text-slate-500 truncate">{schoolBranch}</p>
+                </div>
+              </div>
             </div>
           )}
         </header>
 
-        {/* CONTAINER CONTENT */}
-        <div className="flex-1 overflow-auto p-4 md:p-6">
+        {/* MAIN BODY CONTAINER */}
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
+          {/* CONTAINER CONTENT */}
+          <div className="flex-1 overflow-auto p-4 md:p-6">
           {apiError && (
             <div className="mb-6 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl shadow-sm">
               <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
@@ -1073,51 +1207,81 @@ export default function AssessmentDashboard() {
             <>
               {/* STATE 1: UPLOAD PAGE MATCHING FIGMA EMPTY/FILLED STATE */}
               {!isProcessing && !result && (
-                <div className="max-w-4xl mx-auto bg-white rounded-3xl p-8 border border-slate-200 shadow-sm mt-4">
+                <div className="max-w-4xl mx-auto py-4">
                   
                   {/* Figma Header Title */}
-                  <div className="text-center space-y-2 mb-10">
-                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                      Upload <span className="text-[#f95738]">Question Paper &amp; Answer Sheets</span>
-                    </h2>
-                    <p className="text-sm text-slate-500">Upload both files to get started</p>
+                  <div className="text-center space-y-2 mb-8 select-none">
+                    <h1 className="font-bricolage font-bold text-[40px] leading-[120%] tracking-[-0.04em] text-slate-900 flex items-center justify-center flex-wrap gap-2.5">
+                      <span>Upload</span>
+                      <span className="text-[#FF5623] bg-[#FFF2EE] px-3.5 py-0.5 rounded-2xl inline-block">
+                        Question Paper &amp; Answer Sheets
+                      </span>
+                    </h1>
+                    <p 
+                      style={{
+                        fontFamily: 'var(--font-bricolage), sans-serif',
+                        fontWeight: 400,
+                        fontSize: '20px',
+                        lineHeight: '140%',
+                        letterSpacing: '-0.04em',
+                        textAlign: 'center',
+                        verticalAlign: 'middle',
+                        color: '#303030',
+                      }}
+                      className="text-center"
+                    >
+                      Upload both files to get started
+                    </p>
                   </div>
 
-                  {/* Centered Avatar/Illustration Box */}
-                  <div className="flex justify-center mb-8">
-                    <div 
-                      style={{
-                        width: '137.03px',
-                        height: '138.03px',
-                        paddingTop: '13.2px',
-                        paddingRight: '12px',
-                        paddingBottom: '13.2px',
-                        paddingLeft: '12px',
-                        opacity: 1,
-                      }}
-                      className="flex items-center justify-center overflow-hidden"
-                    >
+                  {/* Centered Teacher Avatar/Illustration Box */}
+                  <div className="flex justify-center mb-8 select-none">
+                    <div className="w-[144px] h-[144px] flex items-center justify-center overflow-hidden">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/teacher.png" alt="Teacher Illustration" className="w-full h-full object-contain" />
+                      <img src="/teacher-orbit.png" alt="Teacher Illustration" className="w-full h-full object-contain" />
                     </div>
                   </div>
 
-                  {/* Side-by-Side Upload Cards (Stacked on Mobile) */}
-                  <div className="flex flex-col sm:flex-row mx-auto justify-center items-center gap-4 sm:gap-[16px] w-full sm:w-[789px] h-auto sm:h-[205px] max-w-full px-4 sm:px-0">
+                  {/* Outer Box around the Dotted Boxes (Gap 14px, Padding 14px) */}
+                  <div 
+                    style={{
+                      borderRadius: '32px',
+                      backgroundColor: '#F6F6F6',
+                      padding: '14px',
+                      gap: '14px',
+                      opacity: 1,
+                    }}
+                    className="flex flex-col sm:flex-row mx-auto justify-center items-center w-fit max-w-[791px] select-none"
+                  >
                     
                     {/* 1. Question Paper Card */}
                     <div 
                       style={{
+                        width: '374.5px',
                         height: '181px',
                         borderRadius: '20px',
                         padding: '10px',
-                        borderWidth: '1.5px',
-                        borderStyle: 'dashed',
-                        borderColor: '#cbd5e1',
+                        backgroundColor: '#FFFFFF',
                         gap: '10px',
+                        opacity: 1,
                       }}
-                      className="flex flex-col justify-center items-center text-center cursor-pointer relative bg-white hover:bg-slate-50/80 transition w-full sm:w-[374.5px] max-w-[374.5px]"
+                      className="flex flex-col justify-center items-center text-center cursor-pointer relative hover:bg-slate-50/70 transition w-full sm:w-[374.5px] max-w-[374.5px] select-none"
                     >
+                      {/* Exact 6, 6 dashes border matching Figma */}
+                      <svg className="absolute inset-0 w-full h-full pointer-events-none rounded-[20px]" xmlns="http://www.w3.org/2000/svg">
+                        <rect 
+                          x="0.75" 
+                          y="0.75" 
+                          width="calc(100% - 1.5px)" 
+                          height="calc(100% - 1.5px)" 
+                          rx="20" 
+                          ry="20" 
+                          fill="none" 
+                          stroke="#CECECE" 
+                          strokeWidth="1.5" 
+                          strokeDasharray="6 6" 
+                        />
+                      </svg>
                       {!qpFile && (
                         <input 
                           type="file" 
@@ -1136,12 +1300,20 @@ export default function AssessmentDashboard() {
                       )}
                       {qpFile ? (
                         <div className="relative w-full h-full flex items-center justify-center p-2">
-                          <div className="relative flex items-center w-full max-w-[298px] mx-auto h-[66px] bg-[#f4f5f6] border border-slate-100 rounded-2xl px-4 select-none text-left z-10">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/pdf-icon.png" alt="PDF" className="w-[34px] h-[44px] object-contain flex-shrink-0 mr-3" />
+                          <div className="relative flex items-center w-full max-w-[298px] mx-auto h-[66px] bg-[#F6F6F6] border border-slate-200/80 rounded-2xl px-3.5 select-none text-left z-10">
+                            {/* Crisp PDF Vector Badge */}
+                            <div className="w-[34px] h-[42px] flex-shrink-0 mr-3 flex items-center justify-center">
+                              <svg width="34" height="42" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0 6C0 2.68629 2.68629 0 6 0H22L34 12V36C34 39.3137 31.3137 42 28 42H6C2.68629 42 0 39.3137 0 36V6Z" fill="#E24B4B"/>
+                                <path d="M22 0V9C22 10.6569 23.3431 12 25 12H34L22 0Z" fill="#F87171"/>
+                                <text x="17" y="27" fill="white" fontFamily="system-ui, sans-serif" fontSize="9.5" fontWeight="900" textAnchor="middle" letterSpacing="0.5">PDF</text>
+                              </svg>
+                            </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-[12px] font-extrabold text-slate-800 truncate leading-snug">{qpFile.name}</p>
-                              <p className="text-[10px] text-slate-400 mt-1 font-bold">
+                              <p className="font-bricolage font-bold text-[16px] leading-[140%] tracking-[-0.04em] text-[#303030] truncate align-middle">
+                                {qpFile.name}
+                              </p>
+                              <p className="font-bricolage font-normal text-[14px] leading-[140%] tracking-[-0.04em] text-[#5E5E5E] align-middle">
                                 {qpFile.size < 1024 * 1024 
                                   ? `${Math.round(qpFile.size / 1024)}KB` 
                                   : `${(qpFile.size / (1024 * 1024)).toFixed(0)}MB`} • {qpPageCount} {qpPageCount === 1 ? 'Page' : 'Pages'}
@@ -1150,23 +1322,27 @@ export default function AssessmentDashboard() {
                             
                             <button 
                               onClick={(e) => { e.stopPropagation(); setQpFile(null); }}
-                              className="absolute -top-2 -right-2 text-white hover:bg-black bg-[#4a4b4d] rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs transition shadow-sm z-20"
+                              className="absolute -top-2.5 -right-2.5 w-6 h-6 hover:scale-110 transition cursor-pointer z-20"
                               title="Remove File"
                             >
-                              ×
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src="/close-icon.png" alt="Remove" className="w-full h-full object-contain drop-shadow-xs" />
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="space-y-2 select-none">
-                          <div className="w-11 h-11 bg-[#f4f5f6] border border-slate-100 rounded-xl flex items-center justify-center mb-3 mx-auto shadow-sm">
+                        <div className="space-y-1.5 select-none flex flex-col items-center">
+                          <div className="w-12 h-12 bg-[#F0F2F5] rounded-xl flex items-center justify-center mb-1.5 shadow-xs">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/upload-icon.png" alt="Upload" className="w-5 h-5 object-contain" />
                           </div>
-                          <p className="text-xs font-bold text-slate-800">
-                            Upload <span className="text-[#f95738]">Question Paper</span>
+                          <p className="font-bricolage font-semibold text-[20px] leading-[22px] tracking-[-0.06em]">
+                            <span style={{ color: '#303030' }}>Upload </span>
+                            <span style={{ color: '#FF5623' }}>Question Paper</span>
                           </p>
-                          <p className="text-[10px] text-slate-400 font-semibold">Max 10MB</p>
+                          <p style={{ color: '#5E5E5E8C' }} className="font-bricolage font-normal text-[14px] leading-[22px] tracking-[-0.06em]">
+                            Max 10MB
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1188,16 +1364,31 @@ export default function AssessmentDashboard() {
                     {/* 2. Answer Sheet Card */}
                     <div 
                       style={{
+                        width: '374.5px',
                         height: '181px',
                         borderRadius: '20px',
                         padding: '10px',
-                        borderWidth: '1.5px',
-                        borderStyle: 'dashed',
-                        borderColor: '#cbd5e1',
+                        backgroundColor: '#FFFFFF',
                         gap: '10px',
+                        opacity: 1,
                       }}
-                      className="flex flex-col justify-center items-center text-center cursor-pointer relative bg-white hover:bg-slate-50/80 transition w-full sm:w-[374.5px] max-w-[374.5px]"
+                      className="flex flex-col justify-center items-center text-center cursor-pointer relative bg-white hover:bg-slate-50/70 transition w-full sm:w-[374.5px] max-w-[374.5px] select-none"
                     >
+                      {/* Exact 6, 6 dashes border matching Figma */}
+                      <svg className="absolute inset-0 w-full h-full pointer-events-none rounded-[20px]" xmlns="http://www.w3.org/2000/svg">
+                        <rect 
+                          x="0.75" 
+                          y="0.75" 
+                          width="calc(100% - 1.5px)" 
+                          height="calc(100% - 1.5px)" 
+                          rx="20" 
+                          ry="20" 
+                          fill="none" 
+                          stroke="#CECECE" 
+                          strokeWidth="1.5" 
+                          strokeDasharray="6 6" 
+                        />
+                      </svg>
                       {!ansFile && (
                         <input 
                           type="file" 
@@ -1208,12 +1399,20 @@ export default function AssessmentDashboard() {
                       )}
                       {ansFile ? (
                         <div className="relative w-full h-full flex items-center justify-center p-2">
-                          <div className="relative flex items-center w-full max-w-[298px] mx-auto h-[66px] bg-[#f4f5f6] border border-slate-100 rounded-2xl px-4 select-none text-left z-10">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/pdf-icon.png" alt="PDF" className="w-[34px] h-[44px] object-contain flex-shrink-0 mr-3" />
+                          <div className="relative flex items-center w-full max-w-[298px] mx-auto h-[66px] bg-[#F6F6F6] border border-slate-200/80 rounded-2xl px-3.5 select-none text-left z-10">
+                            {/* Crisp PDF Vector Badge */}
+                            <div className="w-[34px] h-[42px] flex-shrink-0 mr-3 flex items-center justify-center">
+                              <svg width="34" height="42" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0 6C0 2.68629 2.68629 0 6 0H22L34 12V36C34 39.3137 31.3137 42 28 42H6C2.68629 42 0 39.3137 0 36V6Z" fill="#E24B4B"/>
+                                <path d="M22 0V9C22 10.6569 23.3431 12 25 12H34L22 0Z" fill="#F87171"/>
+                                <text x="17" y="27" fill="white" fontFamily="system-ui, sans-serif" fontSize="9.5" fontWeight="900" textAnchor="middle" letterSpacing="0.5">PDF</text>
+                              </svg>
+                            </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-[12px] font-extrabold text-slate-800 truncate leading-snug">{ansFile.name}</p>
-                              <p className="text-[10px] text-slate-400 mt-1 font-bold">
+                              <p className="font-bricolage font-bold text-[16px] leading-[140%] tracking-[-0.04em] text-[#303030] truncate align-middle">
+                                {ansFile.name}
+                              </p>
+                              <p className="font-bricolage font-normal text-[14px] leading-[140%] tracking-[-0.04em] text-[#5E5E5E] align-middle">
                                 {ansFile.size < 1024 * 1024 
                                   ? `${Math.round(ansFile.size / 1024)}KB` 
                                   : `${(ansFile.size / (1024 * 1024)).toFixed(0)}MB`} • {ansPageCount} {ansPageCount === 1 ? 'Page' : 'Pages'}
@@ -1222,23 +1421,27 @@ export default function AssessmentDashboard() {
                             
                             <button 
                               onClick={(e) => { e.stopPropagation(); setAnsFile(null); }}
-                              className="absolute -top-2 -right-2 text-white hover:bg-black bg-[#4a4b4d] rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs transition shadow-sm z-20"
+                              className="absolute -top-2.5 -right-2.5 w-6 h-6 hover:scale-110 transition cursor-pointer z-20"
                               title="Remove File"
                             >
-                              ×
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src="/close-icon.png" alt="Remove" className="w-full h-full object-contain drop-shadow-xs" />
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="space-y-2 select-none">
-                          <div className="w-11 h-11 bg-[#f4f5f6] border border-slate-100 rounded-xl flex items-center justify-center mb-3 mx-auto shadow-sm">
+                        <div className="space-y-1.5 select-none flex flex-col items-center">
+                          <div className="w-12 h-12 bg-[#F0F2F5] rounded-xl flex items-center justify-center mb-1.5 shadow-xs">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/upload-icon.png" alt="Upload" className="w-5 h-5 object-contain" />
                           </div>
-                          <p className="text-xs font-bold text-slate-800">
-                            Upload <span className="text-[#f95738]">Answer Sheet</span>
+                          <p className="font-bricolage font-semibold text-[20px] leading-[22px] tracking-[-0.06em]">
+                            <span style={{ color: '#303030' }}>Upload </span>
+                            <span style={{ color: '#FF5623' }}>Answer Sheet</span>
                           </p>
-                          <p className="text-[10px] text-slate-400 font-semibold">Max 10MB</p>
+                          <p style={{ color: '#5E5E5E8C' }} className="font-bricolage font-normal text-[14px] leading-[22px] tracking-[-0.06em]">
+                            Max 10MB
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1246,31 +1449,35 @@ export default function AssessmentDashboard() {
                   </div>
 
                   {/* Process Buttons */}
-                  <div className="flex flex-col items-center justify-center pt-8 space-y-4">
+                  <div className="flex flex-col items-center justify-center pt-8 space-y-3.5 select-none">
                     <button 
                       onClick={handleProcessAssessment}
                       disabled={!qpFile || !ansFile}
-                      className={`font-semibold text-sm px-8 py-3 rounded-full flex items-center gap-3 shadow-md transition-all duration-200 active:scale-95 ${qpFile && ansFile ? 'bg-[#1c1d1f] hover:bg-black text-white cursor-pointer hover:shadow-lg' : 'bg-[#e2e2e2] text-slate-400 cursor-not-allowed shadow-none'}`}
+                      className={`font-bricolage font-medium text-[14px] leading-[140%] tracking-[-0.04em] text-center px-8 py-3 rounded-full flex items-center gap-2.5 transition-all duration-200 ${
+                        qpFile && ansFile 
+                          ? 'bg-[#1c1d1f] hover:bg-black text-white cursor-pointer shadow-md hover:scale-[1.02] active:scale-95' 
+                          : 'bg-[#303030]/50 text-white/90 cursor-not-allowed shadow-none'
+                      }`}
                     >
                       <span>Start Mapping</span>
-                      <ArrowRight size={16} />
+                      <ArrowRight size={15} className={qpFile && ansFile ? 'text-white' : 'text-white/90'} />
                     </button>
                     
-                    <p className="text-xs text-slate-400 font-medium">
-                      Once both files are uploaded, you&apos;ll able to map answers with questions
+                    <p className="font-bricolage font-normal text-[14px] leading-[22px] tracking-[-0.06em] text-[#5E5E5E] text-center">
+                      Once both files are uploaded, you’ll able to map answers with questions
                     </p>
 
-                    <div className="flex items-center gap-4 w-full max-w-md pt-4">
-                      <hr className="flex-1 border-slate-200" />
-                      <span className="text-xs font-bold text-slate-400">OR TEST INSTANTLY</span>
-                      <hr className="flex-1 border-slate-200" />
+                    <div className="flex items-center gap-4 w-full max-w-xs pt-3">
+                      <hr className="flex-1 border-[#CECECE]" />
+                      <span className="font-bricolage text-[11px] font-bold text-[#5E5E5E] tracking-wider">OR TEST INSTANTLY</span>
+                      <hr className="flex-1 border-[#CECECE]" />
                     </div>
 
                     <button 
                       onClick={handleLoadDemo}
-                      className="bg-[#282828] hover:bg-[#1a1a1a] text-white font-medium text-xs px-6 py-2.5 rounded-full flex items-center gap-2 border-[2.5px] border-[#f95738] shadow-md transition active:scale-95"
+                      className="bg-[#1c1d1f] hover:bg-black text-white font-inter font-medium text-xs px-5 py-2 rounded-full flex items-center gap-2 border-[2px] border-[#f95738] shadow-xs transition active:scale-95 cursor-pointer"
                     >
-                      <Sparkles size={14} className="text-white fill-white" />
+                      <Sparkles size={13} className="text-white fill-white" />
                       <span>Load Demo</span>
                     </button>
                   </div>
@@ -1567,6 +1774,7 @@ export default function AssessmentDashboard() {
           )}
         </div>
       </main>
+    </div>
 
       {/* Fullscreen Overlay Component */}
       {isFullscreen && (
