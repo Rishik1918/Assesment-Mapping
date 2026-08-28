@@ -424,6 +424,7 @@ export default function AssessmentDashboard() {
   // Zoom and scroll references
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const sheetScrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Customizable school/teacher details
   const [teacherName, setTeacherName] = useState<string>('Madhur Rastogi');
@@ -614,7 +615,7 @@ export default function AssessmentDashboard() {
     }, 1000);
   };
 
-  // Scroll matching page into view
+  // Scroll matching page into view without causing outer page jump
   const handleQuestionSelect = (questionNo: string) => {
     setSelectedQuestionNumber(questionNo);
     setMobileActiveView('sheet');
@@ -623,8 +624,12 @@ export default function AssessmentDashboard() {
     if (mappedAnswer) {
       const pageIndex = mappedAnswer.pageIndex;
       const targetElement = pageRefs.current[pageIndex];
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const container = sheetScrollContainerRef.current;
+      if (targetElement && container) {
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = targetElement.getBoundingClientRect();
+        const offsetTop = targetRect.top - containerRect.top + container.scrollTop;
+        container.scrollTo({ top: Math.max(0, offsetTop - 20), behavior: 'smooth' });
       }
     }
   };
@@ -648,8 +653,12 @@ export default function AssessmentDashboard() {
     setActivePageIdx(targetIdx);
     
     const targetEl = pageRefs.current[targetIdx];
-    if (targetEl) {
-      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const container = sheetScrollContainerRef.current;
+    if (targetEl && container) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+      const offsetTop = targetRect.top - containerRect.top + container.scrollTop;
+      container.scrollTo({ top: Math.max(0, offsetTop - 20), behavior: 'smooth' });
     }
   };
 
@@ -684,7 +693,7 @@ export default function AssessmentDashboard() {
   return (
     <div 
       style={{
-        background: 'linear-gradient(180deg, #F5F5F5 0%, #E9E5E5 100%)',
+        background: 'linear-gradient(180deg, #F5F5F5 0%, #E9E5E5 55%, #17171766 100%)',
       }}
       className="flex h-screen text-slate-800 font-sans overflow-hidden p-3 gap-3 relative"
     >
@@ -1700,7 +1709,7 @@ export default function AssessmentDashboard() {
                       </div>
 
                       {/* Stacked Sheet Canvas */}
-                      <div className="flex-1 overflow-auto p-6 bg-[#525659] flex flex-col items-center">
+                      <div ref={sheetScrollContainerRef} className="flex-1 overflow-auto p-6 bg-[#525659] flex flex-col items-center">
                         <div 
                           style={{ width: `${zoomLevel}%`, maxWidth: zoomLevel > 100 ? 'none' : '48rem' }}
                           className="space-y-6 transition-all duration-200 w-full"
