@@ -693,7 +693,7 @@ export default function AssessmentDashboard() {
   return (
     <div 
       style={{
-        background: 'linear-gradient(180deg, #F5F5F5 0%, #E9E5E5 55%, #17171766 100%)',
+        background: 'linear-gradient(180deg, #F5F5F5 0%, #E9E5E5 100%)',
       }}
       className="flex h-screen text-slate-800 font-sans overflow-hidden p-3 gap-3 relative"
     >
