@@ -686,20 +686,32 @@ export default function AssessmentDashboard() {
     <div className="flex h-screen bg-[#f4f5f6] text-slate-800 font-sans overflow-hidden">
       
       {/* 1. FIGMA SIDEBAR */}
-      <aside className={`hidden lg:flex flex-col bg-white border-r border-slate-200 p-5 flex-shrink-0 justify-between transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'w-[82px] items-center px-3' : 'w-[260px]'}`}>
+      <aside 
+        style={{
+          width: isSidebarCollapsed ? '82px' : '304px',
+          minWidth: isSidebarCollapsed ? '82px' : '304px',
+          height: 'calc(100vh - 24px)',
+          borderRadius: '16px',
+          padding: isSidebarCollapsed ? '24px 12px' : '24px',
+          justifyContent: 'space-between',
+          opacity: 1,
+        }}
+        className="hidden lg:flex flex-col bg-white border border-slate-200 shadow-xs flex-shrink-0 transition-all duration-300 ease-in-out my-3 ml-3 relative z-30 select-none overflow-y-auto"
+      >
         <div className="space-y-6 w-full">
-          {/* Logo */}
+          {/* Logo & Title */}
           {isSidebarCollapsed ? (
             <div className="flex justify-center py-1 select-none">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-icon.png" alt="VedaAI Logo" className="w-10 h-10 object-contain shadow-sm rounded-xl" />
             </div>
           ) : (
-            <div className="flex items-center gap-3 px-2 select-none">
+            <div className="flex items-center gap-3 px-1 select-none">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-icon.png" alt="VedaAI Logo" className="w-9 h-9 object-contain shadow-sm rounded-lg" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-text.png" alt="VedaAI" className="h-[18px] object-contain" />
+              <img src="/logo-icon.png" alt="VedaAI Logo" className="w-9 h-9 object-contain rounded-lg" />
+              <span className="font-bricolage font-bold text-[28px] text-slate-900 tracking-[-0.06em] leading-[1.4] align-middle">
+                VedaAI
+              </span>
             </div>
           )}
 
@@ -707,19 +719,26 @@ export default function AssessmentDashboard() {
           {isSidebarCollapsed ? (
             <button 
               onClick={() => setIsSidebarCollapsed(false)}
-              className="w-11 h-11 mx-auto rounded-full bg-[#1c1d1f] border-2 border-orange-500/80 flex items-center justify-center shadow-md cursor-pointer hover:opacity-90 transition active:scale-95"
+              className="w-11 h-11 mx-auto rounded-full bg-[#1c1d1f] border-2 border-[#f95738] flex items-center justify-center shadow-md cursor-pointer hover:opacity-90 transition active:scale-95"
             >
-              <Sparkles size={16} className="text-white" />
+              <Sparkles size={16} className="text-white fill-white" />
             </button>
           ) : (
-            <button className="w-full flex items-center justify-center p-0 bg-transparent hover:opacity-90 transition active:scale-95">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/toolkit.png" alt="AI Teacher's Toolkit" className="w-[195px] h-auto object-contain mx-auto" />
+            <button className="w-full flex items-center justify-center gap-2 bg-[#1c1d1f] hover:bg-black text-white font-inter font-medium text-[16px] leading-[28px] tracking-[-0.04em] py-2 px-3 rounded-full border-[2px] border-[#f95738] shadow-sm transition active:scale-95">
+              <Sparkles size={16} className="text-white fill-white flex-shrink-0" />
+              <span className="align-middle whitespace-nowrap">AI Teacher&apos;s Toolkit</span>
             </button>
           )}
 
           {/* Menu Items */}
-          <nav className="space-y-2 w-full">
+          <nav 
+            style={{
+              width: isSidebarCollapsed ? '100%' : '256px',
+              gap: '8px',
+              opacity: 1,
+            }}
+            className="flex flex-col w-full"
+          >
             {[
               { id: 'home', label: 'Home', icon: Home, disabled: true },
               { id: 'classroom', label: 'My Classroom', icon: Users, disabled: true },
@@ -760,21 +779,29 @@ export default function AssessmentDashboard() {
                     }
                   }}
                   title={item.label}
-                  className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
+                  className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition ${
                     isSelected 
-                      ? 'bg-slate-100 text-slate-900 font-bold' 
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-slate-100 text-slate-900 font-bricolage font-medium text-[16px] leading-[140%] tracking-[-0.04em] align-middle' 
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bricolage font-normal text-[16px] leading-[140%] tracking-[-0.04em] align-middle'
                   }`}
                 >
-                  <Icon size={17} className={item.highlightIcon && isSelected ? 'text-[#f95738]' : ''} />
-                  <span>{item.label}</span>
+                  <Icon size={18} className={item.highlightIcon && isSelected ? 'text-[#f95738]' : 'text-slate-500'} />
+                  <span className="align-middle">{item.label}</span>
                 </button>
               );
             })}
           </nav>
         </div>
 
-        <div className="space-y-4 mb-14 lg:mb-16 w-full flex flex-col items-center">
+        {/* Settings & School Info */}
+        <div 
+          style={{
+            width: isSidebarCollapsed ? '100%' : '256px',
+            gap: '8px',
+            opacity: 1,
+          }}
+          className="flex flex-col w-full items-center mt-6"
+        >
           {isSidebarCollapsed ? (
             <button 
               onClick={() => setActiveTab('settings')}
@@ -786,10 +813,24 @@ export default function AssessmentDashboard() {
           ) : (
             <button 
               onClick={() => setActiveTab('settings')}
-              className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${activeTab === 'settings' ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+              style={{
+                width: '256px',
+                height: '38px',
+                paddingTop: '8px',
+                paddingRight: '12px',
+                paddingBottom: '8px',
+                paddingLeft: '12px',
+                gap: '8px',
+                opacity: 1,
+              }}
+              className={`w-full flex items-center gap-2 rounded-xl transition font-bricolage font-normal text-[16px] leading-[140%] tracking-[-0.04em] align-middle ${
+                activeTab === 'settings' 
+                  ? 'bg-slate-100 text-slate-900' 
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
             >
-              <Settings size={17} />
-              <span>Settings</span>
+              <Settings size={18} className="text-slate-500" />
+              <span className="align-middle">Settings</span>
             </button>
           )}
 
@@ -799,18 +840,32 @@ export default function AssessmentDashboard() {
               title={`${schoolName} - ${schoolBranch}`}
               className="bg-[#f8f9fa] border border-slate-200 rounded-xl w-11 h-11 flex items-center justify-center shadow-sm cursor-pointer"
             >
-              <span className="text-[10px] font-black text-emerald-800">
-                {schoolName ? schoolName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) : 'SC'}
+              <span className="text-[10px] font-black text-emerald-800 font-bricolage">
+                {schoolName ? schoolName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) : 'DPS'}
               </span>
             </div>
           ) : (
-            <div className="bg-[#f8f9fa] border border-slate-200 rounded-2xl p-3 flex items-center gap-3 w-full">
-              <div className="bg-emerald-100 text-emerald-800 p-2 rounded-xl text-xs font-bold w-9 h-9 flex items-center justify-center flex-shrink-0">
-                {schoolName ? schoolName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,3) : 'SCH'}
+            <div 
+              style={{
+                width: '256px',
+                minHeight: '84px',
+                borderRadius: '16px',
+                gap: '16px',
+                padding: '12px',
+                opacity: 1,
+              }}
+              className="bg-[#f8f9fa] border border-slate-200 flex items-center gap-4 w-full select-none"
+            >
+              <div className="bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold w-10 h-10 flex items-center justify-center flex-shrink-0 font-bricolage">
+                {schoolName ? schoolName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,3) : 'DPS'}
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-extrabold text-slate-900 truncate">{schoolName}</p>
-                <p className="text-[10px] text-slate-400 font-medium truncate">{schoolBranch}</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-bricolage font-bold text-[16px] leading-[140%] tracking-[-0.04em] text-slate-900 truncate align-middle">
+                  {schoolName}
+                </p>
+                <p className="font-bricolage font-normal text-[14px] leading-[140%] tracking-[-0.04em] text-slate-500 truncate align-middle">
+                  {schoolBranch}
+                </p>
               </div>
             </div>
           )}
@@ -823,7 +878,7 @@ export default function AssessmentDashboard() {
             {isSidebarCollapsed ? (
               <ChevronsRight size={18} />
             ) : (
-              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-slate-500 uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 hover:text-slate-500 uppercase tracking-wider font-bricolage">
                 <ChevronsLeft size={14} />
                 <span>Collapse</span>
               </div>
@@ -833,7 +888,7 @@ export default function AssessmentDashboard() {
       </aside>
 
       {/* MAIN CONTAINER */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f4f5f6]">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f4f5f6] my-0 lg:my-3 lg:mr-3 lg:rounded-2xl lg:border lg:border-slate-200/80 shadow-xs relative">
         
         {/* HEADER BAR */}
         <header className="relative flex items-center justify-between bg-white border-b border-slate-200 h-16 px-4 sm:px-6 flex-shrink-0">
