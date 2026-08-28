@@ -1096,11 +1096,11 @@ export default function AssessmentDashboard() {
         </header>
 
         {/* MAIN BODY CONTAINER */}
-        <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
+        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto relative z-10">
           {/* CONTAINER CONTENT */}
-          <div className="flex-1 overflow-y-auto sm:overflow-hidden p-2 sm:p-4 md:p-5 flex flex-col justify-center">
+          <div className="flex-1 p-3 sm:p-4 md:p-6 flex flex-col justify-start sm:justify-center">
           {apiError && (
-            <div className="mb-4 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 p-3 rounded-2xl shadow-sm">
+            <div className="mb-6 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl shadow-sm">
               <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold text-sm">Processing Failed</p>
@@ -1201,13 +1201,13 @@ export default function AssessmentDashboard() {
             <>
               {/* STATE 1: UPLOAD PAGE MATCHING FIGMA EMPTY/FILLED STATE */}
               {!isProcessing && !result && (
-                <div className="max-w-4xl mx-auto py-1 sm:py-2 md:py-3 flex flex-col justify-center my-auto">
+                <div className="max-w-4xl mx-auto py-4 flex flex-col justify-center my-auto w-full">
                   
                   {/* Figma Header Title */}
-                  <div className="text-center space-y-1 sm:space-y-1.5 mb-2 sm:mb-4 md:mb-5 select-none">
-                    <h1 className="font-bricolage font-bold text-[22px] sm:text-[30px] md:text-[38px] lg:text-[40px] leading-[115%] sm:leading-[120%] tracking-[-0.04em] text-slate-900 flex items-center justify-center flex-wrap gap-1.5 sm:gap-2.5">
+                  <div className="text-center space-y-2 mb-6 sm:mb-8 select-none">
+                    <h1 className="font-bricolage font-bold text-[28px] sm:text-[36px] md:text-[40px] leading-[120%] tracking-[-0.04em] text-slate-900 flex items-center justify-center flex-wrap gap-2">
                       <span>Upload</span>
-                      <span className="text-[#FF5623] bg-[#FFF2EE] px-2.5 sm:px-3.5 py-0.5 rounded-xl sm:rounded-2xl inline-block text-center whitespace-nowrap">
+                      <span className="text-[#FF5623] bg-[#FFF2EE] px-3.5 py-0.5 rounded-2xl inline-block text-center">
                         Question Paper &amp; Answer Sheets
                       </span>
                     </h1>
@@ -1215,20 +1215,22 @@ export default function AssessmentDashboard() {
                       style={{
                         fontFamily: 'var(--font-bricolage), sans-serif',
                         fontWeight: 400,
+                        fontSize: '20px',
+                        lineHeight: '140%',
                         letterSpacing: '-0.04em',
                         textAlign: 'center',
                         verticalAlign: 'middle',
                         color: '#303030',
                       }}
-                      className="text-center text-[13px] sm:text-[16px] md:text-[18px] lg:text-[20px] leading-[130%] sm:leading-[140%]"
+                      className="text-center text-[16px] sm:text-[20px]"
                     >
                       Upload both files to get started
                     </p>
                   </div>
 
                   {/* Centered Teacher Avatar/Illustration Box */}
-                  <div className="flex justify-center mb-2 sm:mb-4 md:mb-5 select-none">
-                    <div className="w-[72px] h-[72px] sm:w-[100px] sm:h-[100px] md:w-[130px] md:h-[130px] flex items-center justify-center overflow-hidden">
+                  <div className="flex justify-center mb-6 sm:mb-8 select-none">
+                    <div className="w-[110px] h-[110px] sm:w-[144px] sm:h-[144px] flex items-center justify-center overflow-hidden">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src="/teacher-orbit.png" alt="Teacher Illustration" className="w-full h-full object-contain" />
                     </div>
@@ -1243,21 +1245,19 @@ export default function AssessmentDashboard() {
                       gap: '14px',
                       opacity: 1,
                     }}
-                    className="flex flex-col sm:flex-row mx-auto justify-center items-center w-fit max-w-[791px] select-none"
+                    className="flex flex-col sm:flex-row mx-auto justify-center items-center w-full sm:w-fit max-w-[791px] select-none"
                   >
                     
                     {/* 1. Question Paper Card */}
                     <div 
                       style={{
-                        width: '374.5px',
-                        height: '181px',
                         borderRadius: '20px',
                         padding: '10px',
                         backgroundColor: '#FFFFFF',
                         gap: '10px',
                         opacity: 1,
                       }}
-                      className="flex flex-col justify-center items-center text-center cursor-pointer relative hover:bg-slate-50/70 transition w-full sm:w-[374.5px] max-w-[374.5px] select-none"
+                      className="flex flex-col justify-center items-center text-center cursor-pointer relative hover:bg-slate-50/70 transition w-full sm:w-[374.5px] h-[175px] sm:h-[181px] max-w-[374.5px] select-none"
                     >
                       {/* Exact 6, 6 dashes border matching Figma */}
                       <svg className="absolute inset-0 w-full h-full pointer-events-none rounded-[20px]" xmlns="http://www.w3.org/2000/svg">
@@ -1324,15 +1324,15 @@ export default function AssessmentDashboard() {
                         </div>
                       ) : (
                         <div className="space-y-1.5 select-none flex flex-col items-center">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#F0F2F5] rounded-xl flex items-center justify-center mb-1 shadow-xs">
+                          <div className="w-12 h-12 bg-[#F0F2F5] rounded-xl flex items-center justify-center mb-1.5 shadow-xs">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/upload-icon.png" alt="Upload" className="w-4 h-4 sm:w-5 sm:h-5 object-contain" />
+                            <img src="/upload-icon.png" alt="Upload" className="w-5 h-5 object-contain" />
                           </div>
-                          <p className="font-bricolage font-semibold text-[17px] sm:text-[20px] leading-[22px] tracking-[-0.06em]">
+                          <p className="font-bricolage font-semibold text-[20px] leading-[22px] tracking-[-0.06em]">
                             <span style={{ color: '#303030' }}>Upload </span>
                             <span style={{ color: '#FF5623' }}>Question Paper</span>
                           </p>
-                          <p style={{ color: '#5E5E5E8C' }} className="font-bricolage font-normal text-[13px] sm:text-[14px] leading-[20px] tracking-[-0.06em]">
+                          <p style={{ color: '#5E5E5E8C' }} className="font-bricolage font-normal text-[14px] leading-[22px] tracking-[-0.06em]">
                             Max 10MB
                           </p>
                         </div>
@@ -1356,15 +1356,13 @@ export default function AssessmentDashboard() {
                     {/* 2. Answer Sheet Card */}
                     <div 
                       style={{
-                        width: '374.5px',
-                        height: '181px',
                         borderRadius: '20px',
                         padding: '10px',
                         backgroundColor: '#FFFFFF',
                         gap: '10px',
                         opacity: 1,
                       }}
-                      className="flex flex-col justify-center items-center text-center cursor-pointer relative bg-white hover:bg-slate-50/70 transition w-full sm:w-[374.5px] max-w-[374.5px] select-none"
+                      className="flex flex-col justify-center items-center text-center cursor-pointer relative bg-white hover:bg-slate-50/70 transition w-full sm:w-[374.5px] h-[175px] sm:h-[181px] max-w-[374.5px] select-none"
                     >
                       {/* Exact 6, 6 dashes border matching Figma */}
                       <svg className="absolute inset-0 w-full h-full pointer-events-none rounded-[20px]" xmlns="http://www.w3.org/2000/svg">
@@ -1423,15 +1421,15 @@ export default function AssessmentDashboard() {
                         </div>
                       ) : (
                         <div className="space-y-1.5 select-none flex flex-col items-center">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#F0F2F5] rounded-xl flex items-center justify-center mb-1 shadow-xs">
+                          <div className="w-12 h-12 bg-[#F0F2F5] rounded-xl flex items-center justify-center mb-1.5 shadow-xs">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/upload-icon.png" alt="Upload" className="w-4 h-4 sm:w-5 sm:h-5 object-contain" />
+                            <img src="/upload-icon.png" alt="Upload" className="w-5 h-5 object-contain" />
                           </div>
-                          <p className="font-bricolage font-semibold text-[17px] sm:text-[20px] leading-[22px] tracking-[-0.06em]">
+                          <p className="font-bricolage font-semibold text-[20px] leading-[22px] tracking-[-0.06em]">
                             <span style={{ color: '#303030' }}>Upload </span>
                             <span style={{ color: '#FF5623' }}>Answer Sheet</span>
                           </p>
-                          <p style={{ color: '#5E5E5E8C' }} className="font-bricolage font-normal text-[13px] sm:text-[14px] leading-[20px] tracking-[-0.06em]">
+                          <p style={{ color: '#5E5E5E8C' }} className="font-bricolage font-normal text-[14px] leading-[22px] tracking-[-0.06em]">
                             Max 10MB
                           </p>
                         </div>
@@ -1441,11 +1439,11 @@ export default function AssessmentDashboard() {
                   </div>
 
                   {/* Process Buttons */}
-                  <div className="flex flex-col items-center justify-center pt-2 sm:pt-4 md:pt-5 space-y-2 sm:space-y-3 select-none">
+                  <div className="flex flex-col items-center justify-center pt-6 sm:pt-8 space-y-3 sm:space-y-3.5 select-none pb-4">
                     <button 
                       onClick={handleProcessAssessment}
                       disabled={!qpFile || !ansFile}
-                      className={`font-bricolage font-medium text-[14px] leading-[140%] tracking-[-0.04em] text-center px-8 py-2.5 sm:py-3 rounded-full flex items-center gap-2.5 transition-all duration-200 ${
+                      className={`font-bricolage font-medium text-[14px] leading-[140%] tracking-[-0.04em] text-center px-8 py-3 rounded-full flex items-center gap-2.5 transition-all duration-200 ${
                         qpFile && ansFile 
                           ? 'bg-[#1c1d1f] hover:bg-black text-white cursor-pointer shadow-md hover:scale-[1.02] active:scale-95' 
                           : 'bg-[#303030]/50 text-white/90 cursor-not-allowed shadow-none'
@@ -1455,11 +1453,11 @@ export default function AssessmentDashboard() {
                       <ArrowRight size={15} className={qpFile && ansFile ? 'text-white' : 'text-white/90'} />
                     </button>
                     
-                    <p className="font-bricolage font-normal text-[12px] sm:text-[14px] leading-[20px] sm:leading-[22px] tracking-[-0.06em] text-[#5E5E5E] text-center">
+                    <p className="font-bricolage font-normal text-[14px] leading-[22px] tracking-[-0.06em] text-[#5E5E5E] text-center px-2">
                       Once both files are uploaded, you’ll able to map answers with questions
                     </p>
 
-                    <div className="flex items-center gap-4 w-full max-w-xs pt-1 sm:pt-2">
+                    <div className="flex items-center gap-4 w-full max-w-xs pt-2 sm:pt-3">
                       <hr className="flex-1 border-[#CECECE]" />
                       <span className="font-bricolage text-[11px] font-bold text-[#5E5E5E] tracking-wider">OR TEST INSTANTLY</span>
                       <hr className="flex-1 border-[#CECECE]" />
