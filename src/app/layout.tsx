@@ -29,6 +29,11 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "VedaAI Assessment Evaluation & Answer Mapping",
   description: "AI-powered educational assessment grading and handwriting answer sheet mapping tool",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
