@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  AlertCircle, Settings, Info, Sparkles, 
-  Home, Users, FileText, CheckSquare, Library, ArrowLeft, 
+  AlertCircle, Info, Sparkles, ArrowLeft, 
   HelpCircle, Bell, ChevronDown, ZoomIn, ZoomOut, 
-  ChevronLeft, ChevronRight, ArrowRight, ChevronsRight, ChevronsLeft, Menu,
-  Maximize2, X
+  ChevronLeft, ChevronRight, ArrowRight, Menu,
+  Maximize2, X, PanelLeftClose
 } from 'lucide-react';
 import { processFileToImages, getPdfPageCount, checkPdfSwapLocally } from '@/utils/pdf';
 
@@ -699,19 +698,34 @@ export default function AssessmentDashboard() {
         className="hidden lg:flex flex-col bg-white border border-slate-200 shadow-xs flex-shrink-0 transition-all duration-300 ease-in-out my-3 ml-3 relative z-30 select-none overflow-y-auto"
       >
         <div className="space-y-6 w-full">
-          {/* Logo & Title */}
+          {/* Logo & Title & Collapse */}
           {isSidebarCollapsed ? (
-            <div className="flex justify-center py-1 select-none">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-icon.png" alt="VedaAI Logo" className="w-10 h-10 object-contain shadow-sm rounded-xl" />
+            <div className="flex flex-col items-center gap-4 py-1 select-none">
+              <button 
+                onClick={() => setIsSidebarCollapsed(false)}
+                title="Expand Sidebar"
+                className="w-10 h-10 flex items-center justify-center hover:opacity-80 transition"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/sidebar/logo.png" alt="VedaAI Logo" className="w-10 h-10 object-contain shadow-sm rounded-xl" />
+              </button>
             </div>
           ) : (
-            <div className="flex items-center gap-3 px-1 select-none">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-icon.png" alt="VedaAI Logo" className="w-9 h-9 object-contain rounded-lg" />
-              <span className="font-bricolage font-bold text-[28px] text-slate-900 tracking-[-0.06em] leading-[1.4] align-middle">
-                VedaAI
-              </span>
+            <div className="flex items-center justify-between px-1 select-none w-full">
+              <div className="flex items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/sidebar/logo.png" alt="VedaAI Logo" className="w-9 h-9 object-contain rounded-lg shadow-xs" />
+                <span className="font-bricolage font-bold text-[28px] text-slate-900 tracking-[-0.06em] leading-[1.4] align-middle">
+                  VedaAI
+                </span>
+              </div>
+              <button 
+                onClick={() => setIsSidebarCollapsed(true)}
+                title="Collapse Sidebar"
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg transition hover:bg-slate-100"
+              >
+                <PanelLeftClose size={20} />
+              </button>
             </div>
           )}
 
@@ -730,7 +744,7 @@ export default function AssessmentDashboard() {
             </button>
           )}
 
-          {/* Menu Items */}
+          {/* Menu Items with respective Figma icons from all_icon */}
           <nav 
             style={{
               width: isSidebarCollapsed ? '100%' : '256px',
@@ -740,13 +754,12 @@ export default function AssessmentDashboard() {
             className="flex flex-col w-full"
           >
             {[
-              { id: 'home', label: 'Home', icon: Home, disabled: true },
-              { id: 'classroom', label: 'My Classroom', icon: Users, disabled: true },
-              { id: 'assignments', label: 'Assignments', icon: FileText, disabled: true },
-              { id: 'exams', label: 'Exams', icon: CheckSquare, highlightIcon: true, disabled: false },
-              { id: 'library', label: 'My Library', icon: Library, disabled: true }
+              { id: 'home', label: 'Home', iconImg: '/sidebar/home.png', disabled: true },
+              { id: 'classroom', label: 'My Classroom', iconImg: '/sidebar/classroom.png', disabled: true },
+              { id: 'assignments', label: 'Assignments', iconImg: '/sidebar/assignments.png', disabled: true },
+              { id: 'exams', label: 'Exams', iconImg: '/sidebar/exams.png', disabled: false },
+              { id: 'library', label: 'My Library', iconImg: '/sidebar/library.png', disabled: true }
             ].map((item) => {
-              const Icon = item.icon;
               const isSelected = activeTab === item.id;
               
               if (isSidebarCollapsed) {
@@ -761,11 +774,16 @@ export default function AssessmentDashboard() {
                     title={item.label}
                     className={`w-11 h-11 flex items-center justify-center rounded-xl transition mx-auto ${
                       isSelected 
-                        ? 'bg-slate-100 text-slate-900 shadow-sm' 
+                        ? 'bg-[#F0F2F5] text-slate-900 shadow-xs' 
                         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >
-                    <Icon size={18} className={item.highlightIcon && isSelected ? 'text-[#f95738]' : ''} />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={item.iconImg} 
+                      alt={item.label} 
+                      className={`w-[18px] h-[18px] object-contain transition ${isSelected ? 'opacity-100' : 'opacity-70'}`} 
+                    />
                   </button>
                 );
               }
@@ -779,13 +797,18 @@ export default function AssessmentDashboard() {
                     }
                   }}
                   title={item.label}
-                  className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition ${
+                  className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition ${
                     isSelected 
-                      ? 'bg-slate-100 text-slate-900 font-bricolage font-medium text-[16px] leading-[140%] tracking-[-0.04em] align-middle' 
+                      ? 'bg-[#F0F2F5] text-slate-900 font-bricolage font-medium text-[16px] leading-[140%] tracking-[-0.04em] align-middle' 
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-bricolage font-normal text-[16px] leading-[140%] tracking-[-0.04em] align-middle'
                   }`}
                 >
-                  <Icon size={18} className={item.highlightIcon && isSelected ? 'text-[#f95738]' : 'text-slate-500'} />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img 
+                    src={item.iconImg} 
+                    alt={item.label} 
+                    className={`w-[18px] h-[18px] object-contain flex-shrink-0 transition ${isSelected ? 'opacity-100' : 'opacity-70'}`} 
+                  />
                   <span className="align-middle">{item.label}</span>
                 </button>
               );
@@ -806,9 +829,10 @@ export default function AssessmentDashboard() {
             <button 
               onClick={() => setActiveTab('settings')}
               title="Settings"
-              className={`w-11 h-11 flex items-center justify-center rounded-xl transition mx-auto ${activeTab === 'settings' ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+              className={`w-11 h-11 flex items-center justify-center rounded-xl transition mx-auto ${activeTab === 'settings' ? 'bg-[#F0F2F5] text-slate-900' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
             >
-              <Settings size={18} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/sidebar/settings-icon.png" alt="Settings" className="w-[18px] h-[18px] object-contain opacity-75" />
             </button>
           ) : (
             <button 
@@ -825,11 +849,12 @@ export default function AssessmentDashboard() {
               }}
               className={`w-full flex items-center gap-2 rounded-xl transition font-bricolage font-normal text-[16px] leading-[140%] tracking-[-0.04em] align-middle ${
                 activeTab === 'settings' 
-                  ? 'bg-slate-100 text-slate-900' 
+                  ? 'bg-[#F0F2F5] text-slate-900' 
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <Settings size={18} className="text-slate-500" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/sidebar/settings-icon.png" alt="Settings" className="w-[18px] h-[18px] object-contain opacity-75 flex-shrink-0" />
               <span className="align-middle">Settings</span>
             </button>
           )}
@@ -838,11 +863,10 @@ export default function AssessmentDashboard() {
           {isSidebarCollapsed ? (
             <div 
               title={`${schoolName} - ${schoolBranch}`}
-              className="bg-[#f8f9fa] border border-slate-200 rounded-xl w-11 h-11 flex items-center justify-center shadow-sm cursor-pointer"
+              className="bg-[#F0F2F5] border border-slate-200 rounded-xl w-11 h-11 flex items-center justify-center shadow-xs cursor-pointer p-1"
             >
-              <span className="text-[10px] font-black text-emerald-800 font-bricolage">
-                {schoolName ? schoolName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) : 'DPS'}
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/sidebar/dps-logo.png" alt="DPS" className="w-full h-full object-contain" />
             </div>
           ) : (
             <div 
@@ -854,11 +878,10 @@ export default function AssessmentDashboard() {
                 padding: '12px',
                 opacity: 1,
               }}
-              className="bg-[#f8f9fa] border border-slate-200 flex items-center gap-4 w-full select-none"
+              className="bg-[#F0F2F5] border border-slate-200/80 flex items-center gap-3.5 w-full select-none"
             >
-              <div className="bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold w-10 h-10 flex items-center justify-center flex-shrink-0 font-bricolage">
-                {schoolName ? schoolName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,3) : 'DPS'}
-              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/sidebar/dps-logo.png" alt="DPS Logo" className="w-[42px] h-[42px] object-contain flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="font-bricolage font-bold text-[16px] leading-[140%] tracking-[-0.04em] text-slate-900 truncate align-middle">
                   {schoolName}
@@ -869,21 +892,6 @@ export default function AssessmentDashboard() {
               </div>
             </div>
           )}
-
-          {/* Collapse/Expand Toggle Button */}
-          <button 
-            onClick={() => setIsSidebarCollapsed(prev => !prev)}
-            className="w-full flex items-center justify-center pt-2 text-slate-400 hover:text-slate-600 transition"
-          >
-            {isSidebarCollapsed ? (
-              <ChevronsRight size={18} />
-            ) : (
-              <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 hover:text-slate-500 uppercase tracking-wider font-bricolage">
-                <ChevronsLeft size={14} />
-                <span>Collapse</span>
-              </div>
-            )}
-          </button>
         </div>
       </aside>
 
