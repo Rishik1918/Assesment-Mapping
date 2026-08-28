@@ -771,12 +771,38 @@ export default function AssessmentDashboard() {
           {isSidebarCollapsed ? (
             <button 
               onClick={() => setIsSidebarCollapsed(false)}
-              className="w-11 h-11 mx-auto rounded-full bg-[#1c1d1f] border-2 border-[#f95738] flex items-center justify-center shadow-md cursor-pointer hover:opacity-90 transition active:scale-95"
+              style={{
+                borderRadius: '100px',
+                border: '4px solid transparent',
+                backgroundImage: 'linear-gradient(#1c1d1f, #1c1d1f), linear-gradient(180deg, #FF7950 0%, #C0350A 100%)',
+                backgroundOrigin: 'border-box',
+                backgroundClip: 'padding-box, border-box',
+                boxShadow: '0px 32px 48px 0px rgba(255, 255, 255, 0.20), 0px 16px 48px 0px rgba(255, 255, 255, 0.12), inset 0px 0px 34.5px 0px rgba(255, 255, 255, 0.25), inset 0px -1px 3.5px 0px rgba(177, 177, 177, 0.60)',
+              }}
+              className="w-11 h-11 mx-auto flex items-center justify-center cursor-pointer hover:opacity-90 transition active:scale-95"
             >
               <Sparkles size={16} className="text-white fill-white" />
             </button>
           ) : (
-            <button className="w-full flex items-center justify-center gap-2 bg-[#1c1d1f] hover:bg-black text-white font-inter font-medium text-[16px] leading-[28px] tracking-[-0.04em] py-2 px-3 rounded-full border-[2px] border-[#f95738] shadow-sm transition active:scale-95">
+            <button 
+              style={{
+                width: '251px',
+                height: '42px',
+                borderRadius: '100px',
+                paddingTop: '8px',
+                paddingRight: '43px',
+                paddingBottom: '8px',
+                paddingLeft: '43px',
+                gap: '10px',
+                opacity: 1,
+                border: '4px solid transparent',
+                backgroundImage: 'linear-gradient(#1c1d1f, #1c1d1f), linear-gradient(180deg, #FF7950 0%, #C0350A 100%)',
+                backgroundOrigin: 'border-box',
+                backgroundClip: 'padding-box, border-box',
+                boxShadow: '0px 32px 48px 0px rgba(255, 255, 255, 0.20), 0px 16px 48px 0px rgba(255, 255, 255, 0.12), inset 0px 0px 34.5px 0px rgba(255, 255, 255, 0.25), inset 0px -1px 3.5px 0px rgba(177, 177, 177, 0.60)',
+              }}
+              className="flex items-center justify-center text-white font-inter font-medium text-[15px] leading-[26px] tracking-[-0.04em] transition hover:opacity-95 active:scale-[0.98] select-none mx-auto"
+            >
               <Sparkles size={16} className="text-white fill-white flex-shrink-0" />
               <span className="align-middle whitespace-nowrap">AI Teacher&apos;s Toolkit</span>
             </button>
