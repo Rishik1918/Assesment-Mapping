@@ -232,38 +232,55 @@ Guidelines:
       text: "Please output the final result in JSON strictly conforming to the requested schema."
     });
 
-    // Call Google Gemini REST API directly to support all API key formats (including keys starting with AQ.)
+    // Multi-model fallback sequence for optimal speed, high accuracy, and 100% uptime
     const cleanApiKey = apiKey.trim();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(cleanApiKey)}`;
+    const candidateModels = [
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro'
+    ];
 
-    const apiResponse = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': cleanApiKey
-      },
-      body: JSON.stringify({
-        contents: [{
-          role: 'user',
-          parts: parts
-        }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          responseSchema: responseSchema
+    let resultText = '';
+    let lastError: Error | null = null;
+
+    for (const modelName of candidateModels) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(cleanApiKey)}`;
+        const apiResponse = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': cleanApiKey
+          },
+          body: JSON.stringify({
+            contents: [{
+              role: 'user',
+              parts: parts
+            }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              responseSchema: responseSchema,
+              temperature: 0.1,
+            }
+          })
+        });
+
+        const resData = await apiResponse.json();
+        if (apiResponse.ok && resData.candidates?.[0]?.content?.parts?.[0]?.text) {
+          resultText = resData.candidates[0].content.parts[0].text;
+          break; // Succeeded with fastest accurate model
+        } else {
+          const errorMsg = resData.error?.message || `API responded with status ${apiResponse.status}`;
+          lastError = new Error(`Model ${modelName}: ${errorMsg}`);
         }
-      })
-    });
-
-    const resData = await apiResponse.json();
-
-    if (!apiResponse.ok) {
-      const errorMsg = resData.error?.message || 'Google API returned an error during processing.';
-      throw new Error(`Google API Error (${apiResponse.status}): ${errorMsg}`);
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+      }
     }
 
-    const resultText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!resultText) {
-      throw new Error('Empty response received from the Gemini API.');
+      throw lastError || new Error('Could not process the documents with the Gemini API.');
     }
 
     const resultJson = JSON.parse(resultText);
