@@ -1001,12 +1001,18 @@ export default function AssessmentDashboard() {
               );
             })()}
 
-            {/* Clipboard Icon */}
+            {/* Clipboard Icon (Desktop only) */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/top_bar/clipboard.png" alt="Exams" className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] object-contain opacity-80 flex-shrink-0 hidden sm:inline" />
 
-            <span className="font-bricolage font-semibold text-[15px] sm:text-[16px] leading-[100%] tracking-[-0.04em] text-slate-600 align-middle">
+            {/* Desktop: Exams / Settings */}
+            <span className="hidden sm:inline font-bricolage font-semibold text-[15px] sm:text-[16px] leading-[100%] tracking-[-0.04em] text-slate-600 align-middle">
               {activeTab === 'settings' ? 'Settings' : 'Exams'}
+            </span>
+
+            {/* Mobile: VedaAI */}
+            <span className="sm:hidden font-bricolage font-bold text-[18px] leading-[100%] tracking-[-0.04em] text-slate-900 align-middle">
+              VedaAI
             </span>
           </div>
           
@@ -1240,11 +1246,18 @@ export default function AssessmentDashboard() {
                   
                   {/* Figma Header Title */}
                   <div className="text-center space-y-2 mb-6 sm:mb-8 select-none">
-                    <h1 className="font-bricolage font-bold text-[28px] sm:text-[36px] md:text-[40px] leading-[120%] tracking-[-0.04em] text-slate-900 flex items-center justify-center flex-wrap gap-2">
+                    {/* Desktop: with orange highlighted pill */}
+                    <h1 className="hidden sm:flex font-bricolage font-bold text-[28px] sm:text-[36px] md:text-[40px] leading-[120%] tracking-[-0.04em] text-slate-900 items-center justify-center flex-wrap gap-2">
                       <span>Upload</span>
                       <span className="text-[#FF5623] bg-[#FFF2EE] px-3.5 py-0.5 rounded-2xl inline-block text-center">
                         Question Paper &amp; Answer Sheets
                       </span>
+                    </h1>
+
+                    {/* Mobile: all dark text, 2 lines, no orange background pill matching Figma mobile */}
+                    <h1 className="sm:hidden font-bricolage font-bold text-[24px] leading-[125%] tracking-[-0.04em] text-slate-900 text-center flex flex-col items-center">
+                      <span>Upload Question Paper</span>
+                      <span>&amp; Answer Sheets</span>
                     </h1>
                     <p 
                       style={{
