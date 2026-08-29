@@ -41,3 +41,61 @@ img {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Exact Micro-Interactions & Hover Animations from sc.mp4 */
+
+/* 1. Bell Icon Swing / Ringing on Hover */
+@keyframes bellRingAnim {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(16deg); }
+  40% { transform: rotate(-14deg); }
+  60% { transform: rotate(10deg); }
+  80% { transform: rotate(-6deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.hover-bell-anim:hover img {
+  transform-origin: top center;
+  animation: bellRingAnim 0.6s ease-in-out;
+}
+
+/* 2. Back Arrow Left-Nudge on Hover */
+.hover-back-anim:hover img {
+  transform: translateX(-4px) scale(1.06);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hover-back-anim img {
+  transition: transform 0.2s ease-out;
+}
+
+/* 3. Sparkle Spin & Pop on Hover */
+@keyframes sparklePopAnim {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(45deg) scale(1.15); }
+  100% { transform: rotate(0deg) scale(1.1); }
+}
+
+.hover-sparkle-anim:hover img {
+  animation: sparklePopAnim 0.5s ease-out forwards;
+}
+
+.hover-sparkle-anim img {
+  transition: transform 0.2s ease-out;
+}
+
+/* 4. Help Icon Gentle Wobble on Hover */
+@keyframes helpWobbleAnim {
+  0% { transform: rotate(0deg) scale(1); }
+  30% { transform: rotate(-12deg) scale(1.1); }
+  60% { transform: rotate(12deg) scale(1.1); }
+  100% { transform: rotate(0deg) scale(1.08); }
+}
+
+.hover-help-anim:hover img {
+  animation: helpWobbleAnim 0.5s ease-out forwards;
+}
+
+.hover-help-anim img {
+  transition: transform 0.2s ease-out;
+}

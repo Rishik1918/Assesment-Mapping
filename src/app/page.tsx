@@ -425,6 +425,31 @@ export default function AssessmentDashboard() {
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const sheetScrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const fsScrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const fsPageRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Fullscreen scroll logic to target the active question highlighted
+  useEffect(() => {
+    if (isFullscreen && selectedQuestionNumber) {
+      const timer = setTimeout(() => {
+        const mappedAnswer = result?.answers.find(a => a.questionNumber === selectedQuestionNumber);
+        if (mappedAnswer) {
+          const pageIndex = mappedAnswer.pageIndex;
+          const targetElement = fsPageRefs.current[pageIndex];
+          const container = fsScrollContainerRef.current;
+          if (targetElement && container) {
+            const containerRect = container.getBoundingClientRect();
+            const targetRect = targetElement.getBoundingClientRect();
+            const box = mappedAnswer.boundingBox;
+            const boxMiddleOffset = ((box.ymin + box.ymax) / 2000) * targetRect.height;
+            const offsetTop = targetRect.top - containerRect.top + container.scrollTop + boxMiddleOffset;
+            container.scrollTo({ top: Math.max(0, offsetTop - containerRect.height / 2), behavior: 'smooth' });
+          }
+        }
+      }, 180);
+      return () => clearTimeout(timer);
+    }
+  }, [isFullscreen, selectedQuestionNumber, result]);
 
   // Customizable school/teacher details
   const [teacherName, setTeacherName] = useState<string>('Madhur Rastogi');
@@ -483,10 +508,10 @@ export default function AssessmentDashboard() {
   };
 
   // Convert File to base64 images helper
-  const loadFilesToImages = async (file: File, isQP: boolean, maxDim = 1200, quality = 0.8) => {
+  const loadFilesToImages = async (file: File, isQP: boolean, maxDim = 1200, quality = 0.8, isForUI = false) => {
     try {
       const images = await processFileToImages(file, maxDim, quality);
-      if (!isQP) {
+      if (!isQP && isForUI) {
         setAnsImages(images);
       }
       return images;
@@ -521,35 +546,41 @@ export default function AssessmentDashboard() {
         return;
       }
 
-      // Calculate dynamic maxDim and quality based on combined page count
+      // 1. Render full uncompressed high-resolution pages for the UI output display
+      await loadFilesToImages(ansFile, false, 2048, 0.95, true);
+
+      // 2. Calculate dynamic maxDim and quality specifically for the API network payload
       const qpPageCount = await getPdfPageCount(qpFile);
       const ansPageCount = await getPdfPageCount(ansFile);
       const totalPages = qpPageCount + ansPageCount;
 
-      let maxDim = 1400; // default large size for small documents
-      let quality = 0.85;
+      let maxDim = 1200;
+      let quality = 0.8;
 
-      // Only reduce quality if they are NOT using their own API key (because of Vercel limits)
-      if (!geminiApiKey) {
-        if (totalPages > 4) {
-          maxDim = 1000;
-          quality = 0.75;
-        }
-        if (totalPages > 7) {
-          maxDim = 850;
-          quality = 0.7;
-        }
+      if (totalPages > 2) {
+        maxDim = 1050;
+        quality = 0.75;
+      }
+      if (totalPages > 5) {
+        maxDim = 900;
+        quality = 0.7;
+      }
+      if (totalPages > 8) {
+        maxDim = 800;
+        quality = 0.65;
       }
       
-      const paperImages = await loadFilesToImages(qpFile, true, maxDim, quality);
-      const answerImages = await loadFilesToImages(ansFile, false, maxDim, quality);
+      let paperImages = await loadFilesToImages(qpFile, true, maxDim, quality, false);
+      let answerImages = await loadFilesToImages(ansFile, false, maxDim, quality, false);
 
       const totalBase64Length = paperImages.reduce((sum, img) => sum + img.length, 0) + answerImages.reduce((sum, img) => sum + img.length, 0);
       const estimatedBytes = totalBase64Length * 0.75;
-      if (estimatedBytes > 4.2 * 1024 * 1024) {
-        setApiError("Upload Size Exceeded: The uploaded documents are too large for serverless transfer (exceeds Vercel's 4.5MB limit). Please compress your PDFs or upload fewer pages.");
-        setIsProcessing(false);
-        return;
+
+      // Auto-compress fallback if API payload still approaches transfer ceiling (3.8MB)
+      if (estimatedBytes > 3.8 * 1024 * 1024) {
+        setProcessingStep('Optimizing document compression for multi-page upload...');
+        paperImages = await loadFilesToImages(qpFile, true, 750, 0.6, false);
+        answerImages = await loadFilesToImages(ansFile, false, 750, 0.6, false);
       }
 
       setProcessingStep('Sending extracted pages to Gemini AI (parsing handwriting)...');
@@ -566,10 +597,19 @@ export default function AssessmentDashboard() {
         })
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        if (response.status === 413 || responseText.toLowerCase().includes('request entity too large') || responseText.toLowerCase().includes('payload too large')) {
+          throw new Error('Payload Too Large: The uploaded documents exceeded the server payload limit. Please upload fewer pages or compressed documents.');
+        }
+        throw new Error(responseText || `Server responded with status ${response.status}`);
+      }
       
       if (!response.ok) {
-        throw new Error(data.error || 'Server error during processing.');
+        throw new Error(data?.error || 'Server error during processing.');
       }
 
       // Intercept and throw validation errors
@@ -989,7 +1029,7 @@ export default function AssessmentDashboard() {
                   disabled={!canGoBack}
                   className={`flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
                     canGoBack 
-                      ? 'hover:scale-110 active:scale-95 cursor-pointer opacity-100' 
+                      ? 'hover-back-anim active:scale-95 cursor-pointer opacity-100' 
                       : 'cursor-default opacity-40'
                   }`}
                   title={canGoBack ? 'Go Back' : ''}
@@ -1020,7 +1060,7 @@ export default function AssessmentDashboard() {
             {/* Help Question Mark */}
             <button 
               title="Help"
-              className="hidden md:flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
+              className="hidden md:flex items-center justify-center hover-help-anim active:scale-95 transition-all duration-200 cursor-pointer"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/top_bar/help.png" alt="Help" className="w-[32px] h-[32px] sm:w-[36px] sm:h-[36px] object-contain" />
@@ -1029,7 +1069,7 @@ export default function AssessmentDashboard() {
             {/* Bell Notifications */}
             <button 
               title="Notifications"
-              className="flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
+              className="flex items-center justify-center hover-bell-anim active:scale-95 transition-all duration-200 cursor-pointer"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/top_bar/bell.png" alt="Notifications" className="w-[30px] h-[30px] sm:w-[36px] sm:h-[36px] object-contain" />
@@ -1038,7 +1078,7 @@ export default function AssessmentDashboard() {
             {/* Sparkle Icon Circle Button */}
             <button 
               title="AI Assistant"
-              className="hidden md:flex items-center justify-center hover:scale-110 active:scale-95 cursor-pointer transition-all duration-200"
+              className="hidden md:flex items-center justify-center hover-sparkle-anim active:scale-95 cursor-pointer transition-all duration-200"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/top_bar/sparkle.png" alt="Sparkle" className="w-[32px] h-[32px] sm:w-[36px] sm:h-[36px] object-contain" />
@@ -1912,7 +1952,7 @@ export default function AssessmentDashboard() {
           </div>
 
           {/* Fullscreen Canvas Scroll Area */}
-          <div className="flex-1 overflow-auto p-8 flex flex-col items-center justify-start bg-[#141517]">
+          <div ref={fsScrollContainerRef} className="flex-1 overflow-auto p-8 flex flex-col items-center justify-start bg-[#141517]">
             <div 
               style={{ width: `${zoomLevel}%`, maxWidth: zoomLevel > 100 ? 'none' : '48rem' }}
               className="space-y-6 transition-all duration-200 w-full"
@@ -1927,6 +1967,7 @@ export default function AssessmentDashboard() {
                 return (
                   <div 
                     key={`fs-sheet-canvas-${idx}`}
+                    ref={(el) => { fsPageRefs.current[idx] = el; }}
                     className="relative rounded-none border border-slate-900 bg-white shadow-2xl select-none mb-8"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1961,6 +2002,17 @@ export default function AssessmentDashboard() {
               })}
             </div>
           </div>
+
+          {/* Floating Scroll to Top button */}
+          <button
+            onClick={() => fsScrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-6 right-6 p-3 sm:p-3.5 bg-[#f95738] hover:bg-[#e04526] text-white rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 z-[1000] flex items-center justify-center cursor-pointer border border-white/10"
+            title="Scroll to Top"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="18 15 12 9 6 15" />
+            </svg>
+          </button>
         </div>
       )}
     </div>
