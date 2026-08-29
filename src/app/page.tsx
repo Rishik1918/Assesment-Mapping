@@ -1082,58 +1082,116 @@ export default function AssessmentDashboard() {
 
             {/* Hamburger Menu on Mobile */}
             <button 
-              onClick={() => setIsMobileMenuOpen(prev => !prev)}
+              onClick={() => setIsMobileMenuOpen(true)}
               className="block lg:hidden text-slate-600 hover:text-slate-900 p-1.5 rounded-lg hover:bg-slate-100 transition"
               title="Toggle Menu"
             >
               <Menu size={22} />
             </button>
           </div>
+        </header>
 
-          {/* Mobile Menu Dropdown Popover */}
-          {isMobileMenuOpen && (
-            <div className="absolute top-14 right-3 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="space-y-1">
-                {[
-                  { id: 'home', label: 'Home', iconImg: '/sidebar/home.png' },
-                  { id: 'classroom', label: 'My Classroom', iconImg: '/sidebar/classroom.png' },
-                  { id: 'assignments', label: 'Assignments', iconImg: '/sidebar/assignments.png' },
-                  { id: 'exams', label: 'Exams', iconImg: '/sidebar/exams.png' },
-                  { id: 'library', label: 'My Library', iconImg: '/sidebar/library.png' },
-                  { id: 'settings', label: 'Settings', iconImg: '/sidebar/settings-icon.png' },
-                ].map((item) => (
-                  <button 
-                    key={item.id}
-                    onClick={() => { 
-                      if (item.id === 'exams' || item.id === 'settings') {
-                        setActiveTab(item.id);
-                      }
-                      setIsMobileMenuOpen(false); 
-                    }}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition ${
-                      activeTab === item.id 
-                        ? 'bg-[#F0F2F5] text-slate-900 font-bricolage font-bold text-sm' 
-                        : 'text-slate-600 hover:bg-slate-50 font-bricolage text-sm'
-                    }`}
-                  >
+        {/* Mobile Slide-in Drawer Navigation with Highest Z-Index */}
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-[100] flex justify-end lg:hidden">
+            {/* Dark Backdrop */}
+            <div 
+              onClick={() => setIsMobileMenuOpen(false)} 
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300"
+            />
+
+            {/* Slide-out Drawer */}
+            <div className="relative w-[300px] max-w-[85vw] h-full bg-white shadow-2xl p-5 flex flex-col justify-between z-10 animate-in slide-in-from-right duration-300 overflow-y-auto">
+              <div className="space-y-5">
+                {/* Header: VedaAI + Close Button */}
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={item.iconImg} alt={item.label} className="w-5 h-5 object-contain" />
-                    <span>{item.label}</span>
+                    <img src="/sidebar/Component 1 (1).png" alt="VedaAI Logo" className="w-8 h-8 object-contain" />
+                    <span className="font-bricolage font-bold text-2xl text-slate-900 tracking-[-0.04em]">
+                      VedaAI
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition"
+                    title="Close Menu"
+                  >
+                    <X size={20} />
                   </button>
-                ))}
+                </div>
+
+                {/* AI Teacher's Toolkit Pill in Drawer */}
+                <button 
+                  style={{
+                    width: '100%',
+                    height: '42px',
+                    borderRadius: '100px',
+                    padding: '8px 16px',
+                    gap: '10px',
+                    border: '3px solid transparent',
+                    backgroundImage: 'linear-gradient(#1c1d1f, #1c1d1f), linear-gradient(180deg, #FF7950 0%, #C0350A 100%)',
+                    backgroundOrigin: 'border-box',
+                    backgroundClip: 'padding-box, border-box',
+                    boxShadow: '0px 16px 32px 0px rgba(255, 255, 255, 0.15)',
+                  }}
+                  className="flex items-center justify-center text-white font-inter font-medium text-[14px] leading-[24px] tracking-[-0.04em] transition active:scale-[0.98] select-none"
+                >
+                  <Sparkles size={16} className="text-white fill-white flex-shrink-0" />
+                  <span className="align-middle whitespace-nowrap">AI Teacher&apos;s Toolkit</span>
+                </button>
+
+                {/* Navigation Items */}
+                <nav className="flex flex-col gap-1.5">
+                  {[
+                    { id: 'home', label: 'Home', iconImg: '/sidebar/home.png', disabled: true },
+                    { id: 'classroom', label: 'My Classroom', iconImg: '/sidebar/classroom.png', disabled: true },
+                    { id: 'assignments', label: 'Assignments', iconImg: '/sidebar/assignments.png', disabled: true },
+                    { id: 'exams', label: 'Exams', iconImg: '/sidebar/exams.png', disabled: false },
+                    { id: 'library', label: 'My Library', iconImg: '/sidebar/library.png', disabled: true },
+                    { id: 'settings', label: 'Settings', iconImg: '/sidebar/settings-icon.png', disabled: false },
+                  ].map((item) => {
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button 
+                        key={item.id}
+                        onClick={() => { 
+                          if (item.id === 'exams' || item.id === 'settings') {
+                            setActiveTab(item.id);
+                          }
+                          setIsMobileMenuOpen(false); 
+                        }}
+                        className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition ${
+                          isActive 
+                            ? 'bg-[#F0F2F5] text-slate-900 font-bricolage font-bold text-[15px]' 
+                            : item.disabled
+                              ? 'text-slate-400 hover:bg-slate-50 font-bricolage text-[15px] opacity-70'
+                              : 'text-slate-700 hover:bg-slate-50 font-bricolage text-[15px]'
+                        }`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={item.iconImg} alt={item.label} className="w-5 h-5 object-contain" />
+                        <span className="truncate">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
               </div>
-              <hr className="border-slate-100" />
-              <div className="flex items-center gap-3 p-2 bg-[#F6F6F6] rounded-xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/sidebar/dps-logo.png" alt="DPS" className="w-8 h-8 object-contain" />
-                <div className="min-w-0 flex-1 leading-tight">
-                  <p className="font-bricolage font-bold text-xs text-slate-900 truncate">{schoolName}</p>
-                  <p className="font-bricolage text-[10px] text-slate-500 truncate">{schoolBranch}</p>
+
+              {/* Bottom School Details */}
+              <div className="pt-4 border-t border-slate-100">
+                <div className="flex items-center gap-3 p-2.5 bg-[#F6F6F6] rounded-2xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/sidebar/dps-logo.png" alt="DPS" className="w-9 h-9 object-contain flex-shrink-0" />
+                  <div className="min-w-0 flex-1 leading-tight">
+                    <p className="font-bricolage font-bold text-xs text-slate-900 truncate">{schoolName}</p>
+                    <p className="font-bricolage text-[11px] text-slate-500 truncate">{schoolBranch}</p>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
-        </header>
+          </div>
+        )}
 
         {/* MAIN BODY CONTAINER */}
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto relative z-10">
